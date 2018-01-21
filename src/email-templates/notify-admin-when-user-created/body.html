@@ -1,0 +1,21 @@
+module.exports = 
+`<!doctype html>
+<html>
+    <head>
+        <meta charset='utf-8'>
+        <title>{{=it.appName}}</title>
+        <style type='text/css'>
+            body {
+                -webkit-text-size-adjust: 100%;
+                -ms-text-size-adjust: 100%;
+                font-family: sans-serif;
+            }
+        </style>
+    </head>
+    <body>
+        <div>
+            <div>Hello, {{=it.admin}}</div>
+            <div>User {{=it.username}} ({{=it.fullName}}) created</div>
+        </div>
+    </body>
+</html>`

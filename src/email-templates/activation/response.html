@@ -1,0 +1,47 @@
+module.exports = 
+`<!doctype html>
+<html>
+    <head>
+        <meta charset='utf-8'>
+        <title>{{=it.appName}}</title>
+        <style type='text/css'>
+            body {
+                -webkit-text-size-adjust: 100%;
+                -ms-text-size-adjust: 100%;
+                font-family: sans-serif;
+            }
+
+            .message{
+                width: 100%;
+                box-sizing: border-box;
+                padding: 15px 15px 15px 58px;
+                border-radius: 2px;
+                color: #fff;    
+                box-shadow: 0 0 12px #999;
+                cursor: pointer;
+                line-height: 1.2em;
+                position: relative;
+                opacity: 1;
+                margin-top: 5px;
+                font-size: 1.2rem;
+                background-color: #2f96b4;
+            }
+
+            .message.error{
+                background-color: #d32a49;
+            }
+        </style>
+    </head>
+    <body>
+        <div class='message {{=it.error? 'error': ''}}' >
+            <span class='caption'>
+                {{? it.error }}
+                <span>Invalid verification key.</span>
+                {{?? !it.error}}
+                <span>Verification succeeded. Please click <a href='{{=it.link}}'>here</a> to login.</span>
+                {{? }}
+            </span> 
+        </div>
+    </body>
+    </head>
+</html>`

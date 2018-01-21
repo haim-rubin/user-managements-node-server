@@ -1,0 +1,22 @@
+module.exports = 
+`<!doctype html>
+<html>
+    <head>
+        <meta charset='utf-8'>
+        <title>{{=it.appName}}</title>
+        <style type='text/css'>
+            body {
+                -webkit-text-size-adjust: 100%;
+                -ms-text-size-adjust: 100%;
+                font-family: sans-serif;
+            }
+        </style>
+    </head>
+    <body>
+        <div>
+            <div>Hi, {{=it.username}}</div>
+            Thank you for join us, your account approved
+            Please click <a href='{{=it.loginUrl}}'>here</a> to sign up the application
+        </div>
+    </body>
+</html>`
