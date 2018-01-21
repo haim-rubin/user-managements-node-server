@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://haim-rubin@bitbucket.org/haim-rubin/user-managements-node-server.git"
+    "url": "git+https://github.com/haim-rubin/user-managements-node-server.git"
   },
   "keywords": [
     "user",
@@ -26,7 +26,7 @@
   ],
   "author": "Haim Rubin (Haim.rubin@gmail.com)",
   "license": "MIT",
-  "homepage": "https://bitbucket.org/haim-rubin/user-managements-node-server#readme",
+  "homepage": "https://github.com/haim-rubin/user-managements-node-server#readme",
   "dependencies": {
     "bcrypt-nodejs": "^0.0.3",
     "body-parser": "^1.17.2",
