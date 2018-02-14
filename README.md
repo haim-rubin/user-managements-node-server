@@ -128,93 +128,103 @@
 * Create one of the following database 'postgres'|'mysql'|'sqlite'|'mssql'
 * Create database login user
 * Database Tables - You can create it manually or use the 'dbcreate' script below :
-- Name: ActionVerifications
-- Fields:
-	actionId: {
-      type: DataTypes.UUID,
-      allowNull: false,
-      primaryKey: true,
-      defaultValue: () => uuid.v4()
-    },
-    username: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    actionType: {
-      type: DataTypes.INTEGER,
-      allowNull: false
-    },
-    deleted: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
-      defaultValue: false
-    }
-
-- Name: Users
-- Fields:
-	id: {
-      type: DataTypes.UUID,
-      allowNull: false,
-      primaryKey: true,
-      defaultValue: () => uuid.v4()
-    },
-    username: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true
-    },
-    password: {
-      type: DataTypes.TEXT
-    },
-    fullName: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
-    token: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
-    fbToken: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    },
-    googleToken: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    },
-    profilePhoto: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
-    isValid: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false
-    },
-    termsOfUse: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false
-    }
-
-- Name: Audit
-- Fields:
-	id: {
-		type: DataTypes.UUID,
-		allowNull: false,
-		primaryKey: true,
-		defaultValue: () => uuid.v4()
-	},
-	username: {
-		type: DataTypes.STRING,
-		allowNull: false
-	},
-	actionName: {
-		type: DataTypes.STRING,
-		allowNull: false
-	},
-	requestParams: {
-		type: DataTypes.TEXT,
-		allowNull: true
+- Table: ActionVerifications
+```javascript 
+	ActionVerifications: {
+		actionId: {
+			type: DataTypes.UUID,
+			allowNull: false,
+			primaryKey: true,
+			defaultValue: () => uuid.v4()
+		},
+		username: {
+			type: DataTypes.STRING,
+			allowNull: false
+		},
+		actionType: {
+			type: DataTypes.INTEGER,
+			allowNull: false
+		},
+		deleted: {
+			type: DataTypes.BOOLEAN,
+			allowNull: false,
+			defaultValue: false
+		}
 	}
+```
+
+- Table: Users
+```javascript
+	Users:
+	{
+		id: {
+			type: DataTypes.UUID,
+			allowNull: false,
+			primaryKey: true,
+			defaultValue: () => uuid.v4()
+		},
+		username: {
+			type: DataTypes.STRING,
+			allowNull: false,
+			unique: true
+		},
+		password: {
+			type: DataTypes.TEXT
+		},
+		fullName: {
+			type: DataTypes.STRING,
+			allowNull: true
+		},
+		token: {
+			type: DataTypes.STRING,
+			allowNull: true
+		},
+		fbToken: {
+			type: DataTypes.TEXT,
+			allowNull: true
+		},
+		googleToken: {
+			type: DataTypes.TEXT,
+			allowNull: true
+		},
+		profilePhoto: {
+			type: DataTypes.STRING,
+			allowNull: true
+		},
+		isValid: {
+			type: DataTypes.BOOLEAN,
+			defaultValue: false
+		},
+		termsOfUse: {
+			type: DataTypes.BOOLEAN,
+			defaultValue: false
+		}
+	}
+```
+
+- Table: Audit
+```javascript
+	Audit: {
+		id: {
+			type: DataTypes.UUID,
+			allowNull: false,
+			primaryKey: true,
+			defaultValue: () => uuid.v4()
+		},
+		username: {
+			type: DataTypes.STRING,
+			allowNull: false
+		},
+		actionName: {
+			type: DataTypes.STRING,
+			allowNull: false
+		},
+		requestParams: {
+			type: DataTypes.TEXT,
+			allowNull: true
+		}
+	}
+```
 
 * Edit the following config with the above settings
 * Configuration:
