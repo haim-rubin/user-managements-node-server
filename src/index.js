@@ -1,8 +1,10 @@
-const configOption = require('./configOption')
-const express = require('express')
-const app = express()
-const bodyParser = require('body-parser')
-const isAuthenticate = require('./utils/isAuthenticate')
+import configOption from './configOption'
+import express from 'express'
+import bodyParser from 'body-parser'
+import isAuthenticate from './utils/isAuthenticate'
+import loggerInit from './utils/getLogger'
+import setUserRoutes from './routes/users'
+
 
 const server = (appConfig) => (
   new Promise((resolve, reject ) => {
@@ -14,11 +16,13 @@ const server = (appConfig) => (
           appConfig
         )
 
+    const logger = loggerInit('app')
+    const app = express()
+        
     global.config = config
-    const logger = require('./utils/getLogger')('app')
     app.use(bodyParser.urlencoded({ extended: true }));
     app.use(bodyParser.json())
-    const setUserRoutes = require('./routes/users')
+    
     const userRoute = express.Router({ mergeParams: true })
 
     setUserRoutes(userRoute)

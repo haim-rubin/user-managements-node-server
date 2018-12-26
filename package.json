@@ -31,6 +31,7 @@
     "bcrypt-nodejs": "^0.0.3",
     "body-parser": "^1.17.2",
     "dot": "^1.1.2",
+    "esm": "^3.0.84",
     "express": "^4.15.4",
     "google-auth-library": "^0.10.0",
     "http-status": "^1.0.1",

@@ -1,4 +1,4 @@
-const { server } = require('../../src')
+const { server } = require('../../index')
 const config = require('./app.dev.config')
 
 module.exports = () => (
