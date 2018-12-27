@@ -2,7 +2,7 @@ import configOption from './configOption'
 import express from 'express'
 import bodyParser from 'body-parser'
 import isAuthenticate from './utils/isAuthenticate'
-import loggerInit from './utils/getLogger'
+import loggerInit from './utils/logger/init'
 import setUserRoutes from './routes/users'
 
 
@@ -16,7 +16,7 @@ const server = (appConfig) => (
           appConfig
         )
 
-    const logger = loggerInit('app')
+    const logger = loggerInit(config.log4js).getLogger('app')
     const app = express()
         
     global.config = config
@@ -25,7 +25,7 @@ const server = (appConfig) => (
     
     const userRoute = express.Router({ mergeParams: true })
 
-    setUserRoutes(userRoute)
+    setUserRoutes({ config: appConfig, logger })(userRoute)
 
     app.use(config.userRoute, /* validateInput, writeAudit ,*/ userRoute)
 

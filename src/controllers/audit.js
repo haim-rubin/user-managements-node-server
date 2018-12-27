@@ -1,7 +1,6 @@
 const { Audit, Users, ActionVerifications } = require('../entities')
 const { config } = global
 const ExtError = require('../utils/ExtError')
-const { onCatch } = require('./controllersUtils')
 const httpStatus = require('http-status')
 
 const cleanBody = ({ password, retypePassword, ...cleanedBody }) => (
