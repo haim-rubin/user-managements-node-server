@@ -1,6 +1,6 @@
-const nodemailer = require('nodemailer')
+import nodemailer from 'nodemailer'
 
-const email = (config) => {
+const email = ({ config }) => {
   const { service, user, pass } = config
 
   const transporter = 
@@ -22,4 +22,4 @@ const email = (config) => {
   return { send }
 }
 
-module.exports = email
+export default email

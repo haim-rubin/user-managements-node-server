@@ -1,15 +1,21 @@
-const models = require('../models')
-const conn = require('./conn')
-const sequelize = require('sequelize')
 
-const entities =
-  Object
-    .keys(models)
-    .map((key) => (
-      { [key]: models[key](conn, sequelize) }
-    ))
-    .reduce((obj, propValue) => (
-      Object.assign({}, obj, propValue)
-    ), {})
+import models from '../models'
+import sequelize from 'sequelize'
+import initConn from './conn'
 
-module.exports = entities
+const init = ({ config }) => {
+  const conn = initConn({ config })
+  const entities =
+    Object
+      .keys(models)
+      .map((key) => (
+        { [key]: models[key](conn, sequelize) }
+      ))
+      .reduce((obj, propValue) => (
+        Object.assign({}, obj, propValue)
+      ), {})
+
+  return entities
+}
+
+export default init

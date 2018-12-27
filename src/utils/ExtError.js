@@ -20,4 +20,4 @@ class ExtError extends Error {
     }    
 }
 
-module.exports = ExtError
+export default ExtError

@@ -1,4 +1,6 @@
-const init = ({ config, logger }) => {
+import initAuthntication from '../controllers/authentication'
+import initUsersController from '../controllers/users'
+const init = ({ config, logger, _3rdPartyProviders}) => {
   const {
     signUp,
     signIn,
@@ -7,9 +9,9 @@ const init = ({ config, logger }) => {
     changePassword,
     verify,
     getUserInfo 
-  } = require('../controllers/users')({ config, logger })
+  } = initUsersController({ config, logger, _3rdPartyProviders })
 
-  const { isAuthenticated, handleAuthenticated } = require('../controllers/authentication')({ logger })
+  const { isAuthenticated, handleAuthenticated } = initAuthntication({ logger, config })
 
   const setupRoutes = (userRoute) => {
     
@@ -60,4 +62,4 @@ const init = ({ config, logger }) => {
   }
   return setupRoutes
 }
-  module.exports = init
+export default init

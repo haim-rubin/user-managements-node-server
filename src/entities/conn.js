@@ -1,8 +1,20 @@
-const { config } = global
-const Sequelize = require('sequelize')
+import Sequelize from 'sequelize'
 
-const { name, username, password, host, dialect, pool, logging } = config.database
+const init = ({ config }) => {
+    const { name, username, password, host, dialect, pool, logging } = config.database
+    return(
+        new Sequelize(
+            name,
+            username,
+            password,
+            {
+                host,
+                dialect,
+                pool,
+                logging
+            }
+        )
+    )
+}
 
-const conn = new Sequelize(name, username, password, { host, dialect, pool, logging })
-
-module.exports = conn
+export default init

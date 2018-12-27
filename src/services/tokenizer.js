@@ -1,10 +1,6 @@
-const jwt = require('jsonwebtoken')
+import jwt from 'jsonwebtoken'
 
-const getToken = id => (
+export const getToken = id => (
   Promise
     .resolve({ token: jwt.sign(id, global.config.tokenHash) })
 )
-
-module.exports = {
-  getToken
-}

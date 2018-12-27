@@ -1,24 +1,33 @@
-const init = ({ config, logger }) =>{
-  const httpStatus = require('http-status')
-  const sequelize = require('sequelize')
-  const bcrypt = require('bcrypt-nodejs')
+import initConn from '../entities/conn'
+import httpStatus from 'http-status'
+import sequelize from 'sequelize'
+import bcrypt from 'bcrypt-nodejs'
+import { THIRDPARTY, ACTION_VERIFICATIONS } from '../consts'
+import initEntities from '../entities'
+import { isValidActionId, isValidUsernameAndPassword } from '../services/validator'
+import { last, first } from 'lodash'
+import { getToken }  from '../services/tokenizer'
+import initTemplateManagements from '../services/template-managements'
+import ExtError from '../utils/ExtError'
+import initControllerUtil from './controllersUtils'
+import { extract } from '../utils/SequelizeHelper'
+import initEmailManagements from '../services/emails-managements'
+  
+const init = ({ config, logger, _3rdPartyProviders }) =>{
   const EmailService = {} //require('../services/email-service')
-  const { THIRDPARTY, CODES, ACTION_VERIFICATIONS, MESSAGES } = require('../consts')
-  const {  Users, ActionVerifications } = require('../entities')
-  const { isValidActionId, isValidPassword, isValidUsername, isValidUsernameAndPassword } = require('../services/validator')
-  const { last, first, get } = require('lodash')
-  const { getToken } = require('../services/tokenizer')
-  const { facebook, google } = require('../services/verify-third-party-token')
-  const { compileTemplate } = require('../services/template-render')
-  const conn = require('../entities/conn')
-  const { sendActivationEmail, sendResetPasswordEmail, sendApprovedActivationEmail, sendNotificationToAdminWhenUserCreated } = require('../services/emails-managements')
-  const { getVerifyResponseHTML } = require('../services/template-managements')
-  const ExtError = require('../utils/ExtError')
-  const { onCatch, onCatchLog } = require('./controllersUtils')({ logger })
-  const { extract } = require('../utils/SequelizeHelper')
+ 
+  const {  Users, ActionVerifications } = initEntities({ config, logger })
+  const conn = initConn({ config, logger })
+  const { getVerifyResponseHTML } = initTemplateManagements(config)
+  const { onCatch, onCatchLog } = initControllerUtil({ logger })
   const getPasswordEncrypt = (clearPassword) => (
     bcrypt.hashSync(clearPassword)
   )
+  const{
+    sendActivationEmail,
+    sendResetPasswordEmail,
+    sendApprovedActivationEmail,
+    sendNotificationToAdminWhenUserCreated } = initEmailManagements({ config })
 
   const handleCustomErrorResponse = (res, error) => {
     res
@@ -60,7 +69,7 @@ const init = ({ config, logger }) =>{
       .info(`${logPrefix} requested.`)
 
     return (
-      isValidUsernameAndPassword({ username, password }, new ExtError(MESSAGES.INVALID_USERNAME_OR_PASSWORD, httpStatus.BAD_REQUEST))
+      isValidUsernameAndPassword({ username, password }, new ExtError('INVALID_USERNAME_OR_PASSWORD', httpStatus.BAD_REQUEST))
         .then(() => (
           { username, password: getPasswordEncrypt(password), isValid: false }
         ))
@@ -84,7 +93,7 @@ const init = ({ config, logger }) =>{
 
               res
                 .status(httpStatus.CREATED)
-                .json({ message: MESSAGES.USER_CREATED_EMAIL_VERIFICATION_SENT })
+                .json({ message: 'USER_CREATED_EMAIL_VERIFICATION_SENT' })
             })
             .catch(
               sequelize.UniqueConstraintError,
@@ -92,7 +101,7 @@ const init = ({ config, logger }) =>{
                 logger
                   .info(`${logPrefix} conflict user already exist.`)
 
-                throw new ExtError(MESSAGES.USERNAME_ALREADY_EXIST, httpStatus.CONFLICT)
+                throw new ExtError(httpStatus[httpStatus.CONFLICT], httpStatus.CONFLICT)
               }
             )
         ))
@@ -205,9 +214,12 @@ const init = ({ config, logger }) =>{
 
   const isThirdpartySupprted = (thirdParty) => (
     new Promise((resolve, reject) => {    
-      loginViaThirdPartyMapper[thirdParty] ?
-        resolve(true) :
-        reject(new ExtError(MESSAGES.UNSUPPORTED_THIRD_PARTY, httpStatus.BAD_REQUEST))
+      if(!_3rdPartyProviders[thirdParty]){
+        logger.error(`${thirdParty} unsupported, if you wish for support extends providers api`)
+        reject(new ExtError(httpStatus[httpStatus.BAD_REQUEST], httpStatus.BAD_REQUEST))
+        return
+      } 
+      resolve(true)
     })
   )
 
@@ -218,13 +230,13 @@ const init = ({ config, logger }) =>{
       .info(`${logPrefix} requested.`)
 
     return isThirdpartySupprted(thirdParty)
-      .then(() => verifyThirdpartyUser({ username, password, thirdParty: thirdParty }))
+      .then(() => verifyThirdPartyUser({ username, password, thirdParty }))
       .then(user => {
         if(!user.isValid){
           logger
             .log(`${logPrefix} invalid`)
 
-          throw new ExtError(MESSAGES.INVALID_USERNAME_OR_PASSWORD, httpStatus.BAD_REQUEST)
+          throw new ExtError('INVALID_USERNAME_OR_PASSWORD', httpStatus.BAD_REQUEST)
         }
         return user
       })
@@ -259,7 +271,7 @@ const init = ({ config, logger }) =>{
             logger
               .error(`${logPrefix} User not exist`)
 
-            throw new ExtError(MESSAGES.INVALID_USERNAME_OR_PASSWORD, httpStatus.BAD_REQUEST)
+            throw new ExtError('INVALID_USERNAME_OR_PASSWORD', httpStatus.BAD_REQUEST)
           }
           return response
         })
@@ -269,7 +281,7 @@ const init = ({ config, logger }) =>{
             logger
               .error(`${logPrefix} User is not valid (${user.isValid})`)
 
-            throw new ExtError(MESSAGES.INVALID_USERNAME_OR_PASSWORD, httpStatus.BAD_REQUEST)
+            throw new ExtError('INVALID_USERNAME_OR_PASSWORD', httpStatus.BAD_REQUEST)
           }
           return user
         })
@@ -280,7 +292,7 @@ const init = ({ config, logger }) =>{
               logger
                 .error(`${logPrefix} Invalid password.`)
 
-              throw new ExtError(MESSAGES.INVALID_USERNAME_OR_PASSWORD, httpStatus.BAD_REQUEST)
+              throw new ExtError('INVALID_USERNAME_OR_PASSWORD', httpStatus.BAD_REQUEST)
             })
         ))
         .then(user => generateUserToken(user, res))
@@ -318,52 +330,13 @@ const init = ({ config, logger }) =>{
       })  
   }
 
-  const loginViaFacebook = ({ username, token }) => {
+  const loginVia3rdParty = ({ username, token, thirdParty }) => {
     logger
-      .info(`User (${username}) - loginViaFacebook -> requested.`)
+      .info(`User (${username}) - login via ${thirdParty} -> requested.`)
 
     return (
-      facebook
-        .verify(token)
-        .then(userData => (
-          Object
-            .assign(
-              {}, 
-              userData, {
-                isValid: userData.email === username,
-                profilePhoto: userData.picture && userData.picture.data.url
-              }
-            )
-          )
-        )
+      _3rdPartyProviders[thirdParty].verify({ token })
       )
-  }
-
-  const loginViaGoogle = ({ username, token }) => {
-    logger
-      .info(`User (${username}) - loginViaGoogle -> loginViaGoogle requested.`)
-
-    return (
-      google
-        .verify({ token })
-        .then((login) => login.getPayload())
-        .then((userInfo) => (
-          Object
-            .assign(
-              {},
-              userInfo,
-              {
-                isValid: userInfo.email === username,
-                profilePhoto: userInfo.picture
-              }
-            )
-        ))
-      )
-  }
-
-  const loginViaThirdPartyMapper = {
-    [THIRDPARTY.FACEBOOK]: loginViaFacebook,
-    [THIRDPARTY.GOOGLE]: loginViaGoogle                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
   }
 
   const thirdPartyProp = {
@@ -417,8 +390,11 @@ const init = ({ config, logger }) =>{
         )
   )
 
-  const verifyThirdpartyUser = ({ username, password: token, thirdParty }) => {
-    return loginViaThirdPartyMapper[thirdParty]({ username, token })
+  const verifyThirdPartyUser = ({ username, password: token, thirdParty }) => {
+    return (
+      !!_3rdPartyProviders[thirdParty]
+      && loginVia3rdParty({ username, token, thirdParty })
+    ) 
   }
 
   const getUserInfo = (req, res) => {
@@ -448,7 +424,6 @@ const init = ({ config, logger }) =>{
 
         res
           .status(httpStatus.BAD_REQUEST)
-          .json({ code: CODES.ERROR_WHILE_RETRIEVING_DATA })
       })
   }
 
@@ -464,7 +439,7 @@ const init = ({ config, logger }) =>{
               .then((response) => {
                 response ?
                   resolve({ token }) :
-                  reject({ message: MESSAGES.INVALID_USERNAME_OR_PASSWORD })
+                  reject({ message: 'INVALID_USERNAME_OR_PASSWORD' })
               })
           ))
     ))
@@ -488,7 +463,7 @@ const init = ({ config, logger }) =>{
           logger.error(`User (${username}) - forgotPassword -> User doesn't exist.`)
           res
             .status(httpStatus.NOT_FOUND)
-            .json({ message: MESSAGES.USER_NOT_EXIST_IN_SYSTEM })
+            .json({ message: httpStatus[httpStatus.NOT_FOUND] })
         }
 
         return user.dataValues
@@ -498,7 +473,7 @@ const init = ({ config, logger }) =>{
           logger.error(`User (${username}) - forgotPassword -> User is not valid or not activated yet.`)
           res
             .status(httpStatus.BAD_REQUEST)
-            .json({ message: MESSAGES.USER_NOT_ACTIVATED })
+            .json({ message: httpStatus[httpStatus.BAD_REQUEST] })
         }
         return user
       })
@@ -509,7 +484,7 @@ const init = ({ config, logger }) =>{
           .info(`User (${username}) - forgotPassword -> reset link sent to user.`)
         res
           .status(httpStatus.OK)
-          .json({ message: MESSAGES.RESTORE_PASSWORD_LINK_SENT_TO_YOUR_EMAIL })
+          .json({ message: 'RESTORE_PASSWORD_LINK_SENT_TO_YOUR_EMAIL' })
       })    
       .catch((error) => {
         logger
@@ -599,7 +574,7 @@ const init = ({ config, logger }) =>{
             logger.info('changePassword: Password successfully changed for user')
             res
               .status(httpStatus.OK)
-              .json({ message: MESSAGES.PASSWORD_SUCCESSFULLY_CHANGED })
+              .json({ message: 'PASSWORD_SUCCESSFULLY_CHANGED' })
           })
           .catch((error) => {
             logger.error(`changePassword: ${error}`)
@@ -627,7 +602,7 @@ const init = ({ config, logger }) =>{
         logger.info(`signOut: user(${req.userInfo.username}) succeeded`)
         res
           .status(httpStatus.OK)
-          .json({ message: MESSAGES.USER_SUCCEEDED_TO_LOGOUT })
+          .json({ message: 'USER_SUCCEEDED_TO_LOGOUT' })
       })
       .catch((error) => {
         logger.error(`signOut: user(${req.userInfo.username}) succeeded`)
@@ -648,4 +623,4 @@ const init = ({ config, logger }) =>{
     signOut
   }
 }
-module.exports = init
+export default init

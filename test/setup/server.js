@@ -7,4 +7,7 @@ module.exports = () => (
       console.log(`Server run on: ${host}${port? ':' + port: ''}`)
       return { host, port, stop }
     })
+    .catch(error => {
+      console.log(error)
+    })
   )

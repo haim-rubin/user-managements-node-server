@@ -292,12 +292,13 @@
 * Run the server:
 
 ```javascript
-		const { server: userManagements, isAuthenticated } = require('user-managements-node-server')
-		const express = require('express')
-		const bodyParser = require('body-parser')
-		const proxy =  require('express-http-proxy')  
-		const boolParser = require('express-query-boolean')
-		const config = require('./config')
+		import { server: userManagements, isAuthenticated } from 'user-managements-node-server'
+		import express from 'express'
+		import bodyParser from 'body-parser'
+		import proxy =  from 'express-http-proxy') 
+		import boolParser from 'express-query-boolean'
+		import config from './config'
+		
 		const userApiAddress = 'http://localhost:5300'
 		
 		const redirectUrl = (req, res, next) => {
@@ -339,28 +340,29 @@ server(config)
 	For example the default activationBody look like
 
 	```javascript
-		module.exports =
+		export default 
 			`<!doctype html>
-			<html>
-					<head>
-							<meta charset='utf-8'>
-							<title>{{=it.appName}}</title>
-							<style type='text/css'>
-									body {
-											-webkit-text-size-adjust: 100%;
-											-ms-text-size-adjust: 100%;
-											font-family: sans-serif;
-									}
-							</style>
-					</head>
-					<body>
-							<div>
-									<div>Hello, {{=it.username}}</div>
-									Thank you for registration our app,
-									to finish activation please click <a href='{{=it.verificationUrl}}{{=it.actionId}}'>here</a>
-							</div>
-					</body>
-			</html>`
+				<html>
+						<head>
+								<meta charset='utf-8'>
+								<title>{{=it.appName}}</title>
+								<style type='text/css'>
+										body {
+												-webkit-text-size-adjust: 100%;
+												-ms-text-size-adjust: 100%;
+												font-family: sans-serif;
+										}
+								</style>
+						</head>
+						<body>
+								<div>
+										<div>Hello, {{=it.username}}</div>
+										Thank you for registration our app,
+										to finish activation please click <a href='{{=it.verificationUrl}}{{=it.actionId}}'>here</a>
+								</div>
+						</body>
+				</html>
+			`
  ```
 	1. activationBody
 		Exposed fields:

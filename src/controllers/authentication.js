@@ -1,13 +1,14 @@
-const init = ({ logger }) => {
-    const { Users } = require('../entities')
-    const httpStatus = require('http-status')
-    const jwt = require('jsonwebtoken')
-    const { config } = global
-    const { getClientIp, getUserAgentObject } = require('../services/user-agent')
-    const ExtError = require('../utils/ExtError')
-    const isUserInRoleDB = (role) => Promise.resolve(true)
-    const { onCatchUnAuthorize } = require('./controllersUtils')({ logger })
+import  initEntities from '../entities'
+import httpStatus  from 'http-status'
+import jwt from 'jsonwebtoken'
+import { getClientIp, getUserAgentObject } from '../services/user-agent'
+import ExtError from '../utils/ExtError'
+import initControllerUtil from './controllersUtils'
 
+const init = ({ logger, config }) => {
+    const isUserInRoleDB = (role) => Promise.resolve(true)
+    const { onCatchUnAuthorize } = initControllerUtil({ logger })
+    const { Users } = initEntities({ config, logger })
     const isUserInRole = ({ username, role }) => (
     //TODO: check if user is in role duo to database, if it does so return username if not return null
         isUserInRoleDB(username, role)
@@ -104,4 +105,4 @@ const init = ({ logger }) => {
     }
 }
 
-module.exports =  init
+export default init

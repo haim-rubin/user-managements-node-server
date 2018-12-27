@@ -1,8 +1,8 @@
+import ExtError from '../utils/ExtError'
+import httpStatus from 'http-status'
+import validator from 'validator'
 
 const init = ({ logger }) => {
-    const ExtError = require('../utils/ExtError')
-    const httpStatus = require('http-status')
-    const validator = require('validator')
     const { writeAudit } = require('./audit')
 
     const onCatchLog = (error) => {
@@ -75,4 +75,4 @@ const init = ({ logger }) => {
     }
 }
 
-module.exports = init
+export default init
