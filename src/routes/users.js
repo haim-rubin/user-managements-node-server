@@ -1,19 +1,14 @@
-import initAuthntication from '../controllers/authentication'
-import initUsersController from '../controllers/users'
-const init = ({ config, logger, _3rdPartyProviders}) => {
-  const {
-    signUp,
-    signIn,
-    signOut,
-    forgotPassword,
-    changePassword,
-    verify,
-    getUserInfo 
-  } = initUsersController({ config, logger, _3rdPartyProviders })
-
-  const { isAuthenticated, handleAuthenticated } = initAuthntication({ logger, config })
-
-  const setupRoutes = (userRoute) => {
+const init = ({
+  signUp,
+  signIn,
+  signOut,
+  forgotPassword,
+  changePassword,
+  verify,
+  getUserInfo,
+  isAuthenticated,
+  handleAuthenticated
+}) => (userRoute) => {
     
     userRoute
       .route('/sign-up')
@@ -60,6 +55,5 @@ const init = ({ config, logger, _3rdPartyProviders}) => {
         return handleAuthenticated(req, res, next, role)
       })
   }
-  return setupRoutes
-}
+  
 export default init

@@ -3,11 +3,22 @@ import express from 'express'
 import bodyParser from 'body-parser'
 import isAuthenticate from './utils/isAuthenticate'
 import loggerInit from './utils/logger/init'
-import setUserRoutes from './routes/users'
+import initUserApis from './routes/users'
 import init3rdPartyProviders from './services/verify-third-party-token'
+import initAuthntication from './controllers/authentication'
+import initUsersComponents from './controllers/users'
+
+const getUsersImplementation = ({ config, logger, _3rdPartyProviders }) => ({
+  ...initUsersComponents({
+    config,
+    logger,
+    _3rdPartyProviders
+  }),
+  ...initAuthntication({ logger, config })
+})
+
 
 const server = (appConfig) => (
-  
   new Promise((resolve, reject ) => {
     try{
       const config = {
@@ -17,13 +28,20 @@ const server = (appConfig) => (
 
       const logger = loggerInit(config.log4js).getLogger('app')
       const app = express()
-          
+
       app.use(bodyParser.urlencoded({ extended: true }));
       app.use(bodyParser.json())
-      
+
       const userRoute = express.Router({ mergeParams: true })
       const _3rdPartyProviders = init3rdPartyProviders({ config })
-      setUserRoutes({ config, logger, _3rdPartyProviders })(userRoute)
+
+      initUserApis(
+        getUsersImplementation({
+          config,
+          logger,
+          _3rdPartyProviders
+        })
+      )(userRoute)
 
       app.use(config.userRoute, /* validateInput, writeAudit ,*/ userRoute)
 
