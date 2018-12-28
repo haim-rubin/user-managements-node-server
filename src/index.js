@@ -8,7 +8,11 @@ import init3rdPartyProviders from './services/verify-third-party-token'
 import initAuthntication from './controllers/authentication'
 import initUsersComponents from './controllers/users'
 
-const getUsersImplementation = ({ config, logger, _3rdPartyProviders }) => ({
+const initUserImplementations = ({
+  config,
+  logger,
+  _3rdPartyProviders
+}) => ({
   ...initUsersComponents({
     config,
     logger,
@@ -16,7 +20,6 @@ const getUsersImplementation = ({ config, logger, _3rdPartyProviders }) => ({
   }),
   ...initAuthntication({ logger, config })
 })
-
 
 const server = (appConfig) => (
   new Promise((resolve, reject ) => {
@@ -36,7 +39,7 @@ const server = (appConfig) => (
       const _3rdPartyProviders = init3rdPartyProviders({ config })
 
       initUserApis(
-        getUsersImplementation({
+        initUserImplementations({
           config,
           logger,
           _3rdPartyProviders
