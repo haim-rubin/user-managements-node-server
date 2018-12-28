@@ -1,4 +1,4 @@
-class ExtError extends Error {
+class HttpError extends Error {
     constructor(messageOrMessages, code){
         messageOrMessages = [].concat(messageOrMessages || [])
         
@@ -20,4 +20,4 @@ class ExtError extends Error {
     }    
 }
 
-export default ExtError
+export default HttpError

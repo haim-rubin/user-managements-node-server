@@ -1,4 +1,4 @@
-import ExtError from '../utils/ExtError'
+import HttpError from "../utils/HttpError";
 import httpStatus from 'http-status'
 import validator from 'validator'
 
@@ -44,7 +44,7 @@ const init = ({ logger }) => {
         isValidUserInput(req)
             .then(isValid => {
                 if(!isValid){
-                    throw new ExtError('Invalid username / token / actionId', httpStatus.BAD_REQUEST)
+                    throw new HttpError('Invalid username / token / actionId', httpStatus.BAD_REQUEST)
                 }
                 return isValid
             })

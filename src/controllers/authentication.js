@@ -2,7 +2,7 @@ import  initEntities from '../entities'
 import httpStatus  from 'http-status'
 import jwt from 'jsonwebtoken'
 import { getClientIp, getUserAgentObject } from '../services/user-agent'
-import ExtError from '../utils/ExtError'
+import HttpError from "../utils/HttpError";
 import initControllerUtil from './controllersUtils'
 
 const init = ({ logger, config }) => {
@@ -16,7 +16,7 @@ const init = ({ logger, config }) => {
                 resolve({ username })
             })
             .catch(() => {
-                reject(new ExtError(`User is not in role (${role}`, httpStatus.UNAUTHORIZED))
+                reject(new HttpError(`User is not in role (${role}`, httpStatus.UNAUTHORIZED))
             })
     )
 
@@ -24,12 +24,12 @@ const init = ({ logger, config }) => {
         new Promise((resolve, reject) => {
             jwt.verify(token, config.tokenHash, (err, decoded) => {
                 return err ?
-                    reject(new ExtError(err.message, httpStatus.UNAUTHORIZED)) :
+                    reject(new HttpError(err.message, httpStatus.UNAUTHORIZED)) :
                     Users
                         .findOne({ where: { token } })
                         .then((response) => {
                             if (!response) {
-                                throw new ExtError('User not exist', httpStatus.UNAUTHORIZED)
+                                throw new HttpError('User not exist', httpStatus.UNAUTHORIZED)
                             }
                             return response
                         })
@@ -73,7 +73,7 @@ const init = ({ logger, config }) => {
             .then(({ id, username }) => setRequestWithUserInfo({ username, id, req }))
             .then(({ id }) => {
                 if(!id){
-                    throw new ExtError('User not exist', httpStatus.UNAUTHORIZED)
+                    throw new HttpError('User not exist', httpStatus.UNAUTHORIZED)
                 }
                 return { id }
             })

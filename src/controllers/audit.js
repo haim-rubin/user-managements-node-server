@@ -1,6 +1,6 @@
 const { Audit, Users, ActionVerifications } = require('../entities')
 const { config } = global
-const ExtError = require('../utils/ExtError')
+const HttpError = require('../utils/HttpError')
 const httpStatus = require('http-status')
 
 const cleanBody = ({ password, retypePassword, ...cleanedBody }) => (
@@ -53,7 +53,7 @@ const getWithUsername = ({ body, headers, query }) => (
                     )
                     .then((user) => {
                         if(!user || (user && !user.username)){
-                            throw new ExtError('User not identified', httpStatus.UNAUTHORIZED)
+                            throw new HttpError('User not identified', httpStatus.UNAUTHORIZED)
                         }
                         return user
                     })

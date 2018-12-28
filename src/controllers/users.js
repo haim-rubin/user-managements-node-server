@@ -8,7 +8,7 @@ import { isValidActionId, isValidUsernameAndPassword } from '../services/validat
 import { last, first } from 'lodash'
 import { getToken }  from '../services/tokenizer'
 import initTemplateManagements from '../services/template-managements'
-import ExtError from '../utils/ExtError'
+import HttpError from '../utils/HttpError'
 import initControllerUtil from './controllersUtils'
 import { extract } from '../utils/SequelizeHelper'
 import initEmailManagements from '../services/emails-managements'
@@ -69,7 +69,7 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
       .info(`${logPrefix} requested.`)
 
     return (
-      isValidUsernameAndPassword({ username, password }, new ExtError('INVALID_USERNAME_OR_PASSWORD', httpStatus.BAD_REQUEST))
+      isValidUsernameAndPassword({ username, password }, new HttpError('INVALID_USERNAME_OR_PASSWORD', httpStatus.BAD_REQUEST))
         .then(() => (
           { username, password: getPasswordEncrypt(password), isValid: false }
         ))
@@ -82,7 +82,7 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
                 .catch(error =>{
                   const { code } = error 
                   if('EAUTH' === code){
-                    throw new ExtError('Invalid email credentials, check email section in config', httpStatus.BAD_REQUEST)
+                    throw new HttpError('Invalid email credentials, check email section in config', httpStatus.BAD_REQUEST)
                   }
                   throw error
                 })
@@ -101,7 +101,7 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
                 logger
                   .info(`${logPrefix} conflict user already exist.`)
 
-                throw new ExtError(httpStatus[httpStatus.CONFLICT], httpStatus.CONFLICT)
+                throw new HttpError(httpStatus[httpStatus.CONFLICT], httpStatus.CONFLICT)
               }
             )
         ))
@@ -128,7 +128,7 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
               logger
                 .error(`${logPrefix} action verification doesn't exist`)
 
-              throw new ExtError(`Action verification doesn't exist`, httpStatus.BAD_REQUEST)
+              throw new HttpError(`Action verification doesn't exist`, httpStatus.BAD_REQUEST)
             }
             return response
           })
@@ -138,7 +138,7 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
               logger
                 .error(`${logPrefix} action verification expired`)
 
-              throw new ExtError(`Action verification doesn't exist`, httpStatus.BAD_REQUEST)
+              throw new HttpError(`Action verification doesn't exist`, httpStatus.BAD_REQUEST)
             }
             return actionVerification
           })
@@ -164,7 +164,7 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
               logger
                 .error(`User not exist.`)
             
-              throw new ExtError(`User not exist.`, httpStatus.BAD_REQUEST)
+              throw new HttpError(`User not exist.`, httpStatus.BAD_REQUEST)
             }
             return user
           })
@@ -216,7 +216,7 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
     new Promise((resolve, reject) => {    
       if(!_3rdPartyProviders[thirdParty]){
         logger.error(`${thirdParty} unsupported, if you wish for support extends providers api`)
-        reject(new ExtError(httpStatus[httpStatus.BAD_REQUEST], httpStatus.BAD_REQUEST))
+        reject(new HttpError(httpStatus[httpStatus.BAD_REQUEST], httpStatus.BAD_REQUEST))
         return
       } 
       resolve(true)
@@ -236,7 +236,7 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
           logger
             .log(`${logPrefix} invalid`)
 
-          throw new ExtError('INVALID_USERNAME_OR_PASSWORD', httpStatus.BAD_REQUEST)
+          throw new HttpError('INVALID_USERNAME_OR_PASSWORD', httpStatus.BAD_REQUEST)
         }
         return user
       })
@@ -271,7 +271,7 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
             logger
               .error(`${logPrefix} User not exist`)
 
-            throw new ExtError('INVALID_USERNAME_OR_PASSWORD', httpStatus.BAD_REQUEST)
+            throw new HttpError('INVALID_USERNAME_OR_PASSWORD', httpStatus.BAD_REQUEST)
           }
           return response
         })
@@ -281,7 +281,7 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
             logger
               .error(`${logPrefix} User is not valid (${user.isValid})`)
 
-            throw new ExtError('INVALID_USERNAME_OR_PASSWORD', httpStatus.BAD_REQUEST)
+            throw new HttpError('INVALID_USERNAME_OR_PASSWORD', httpStatus.BAD_REQUEST)
           }
           return user
         })
@@ -292,7 +292,7 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
               logger
                 .error(`${logPrefix} Invalid password.`)
 
-              throw new ExtError('INVALID_USERNAME_OR_PASSWORD', httpStatus.BAD_REQUEST)
+              throw new HttpError('INVALID_USERNAME_OR_PASSWORD', httpStatus.BAD_REQUEST)
             })
         ))
         .then(user => generateUserToken(user, res))
