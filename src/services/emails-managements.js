@@ -1,7 +1,12 @@
 import initEmail from './email-provider'
+import initTemplateManagement from './template-managements'
     
 const init = ({ config }) => {
-    const { getActivationEmailParams, getApprovedActivationEmailParams, getNotifyAdminWhenUserCreatedParams } = require('./template-managements')
+    const {
+        getActivationEmailParams,
+        getApprovedActivationEmailParams,
+        getNotifyAdminWhenUserCreatedParams } = initTemplateManagement(config)
+        
     const { send } = initEmail({ config: config.email })
     
     const sendActivationEmail = ({ actionId, username }) => {

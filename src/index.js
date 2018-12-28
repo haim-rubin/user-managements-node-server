@@ -7,15 +7,13 @@ import setUserRoutes from './routes/users'
 import init3rdPartyProviders from './services/verify-third-party-token'
 
 const server = (appConfig) => (
+  
   new Promise((resolve, reject ) => {
     try{
-      const config =
-        Object
-          .assign(
-            {},
-            configOption,
-            appConfig
-          )
+      const config = {
+        ...configOption,
+        ...appConfig
+      }
 
       const logger = loggerInit(config.log4js).getLogger('app')
       const app = express()
@@ -25,7 +23,7 @@ const server = (appConfig) => (
       
       const userRoute = express.Router({ mergeParams: true })
       const _3rdPartyProviders = init3rdPartyProviders({ config })
-      setUserRoutes({ config: appConfig, logger, _3rdPartyProviders })(userRoute)
+      setUserRoutes({ config, logger, _3rdPartyProviders })(userRoute)
 
       app.use(config.userRoute, /* validateInput, writeAudit ,*/ userRoute)
 

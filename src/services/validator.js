@@ -1,5 +1,6 @@
 import validator from 'validator'
 import httpStatus from 'http-status'
+import ExtError from '../utils/ExtError'
 const UuidVersion = 4
 
 export const isValidUsername = (email) => (
@@ -26,6 +27,6 @@ export const isValidActionId = ({ actionId }) => (
   new Promise((resolve, reject) => {
     validator.isUUID(actionId, UuidVersion) ?
       resolve(true) :
-      reject(new Error(httpStatus.BAD_REQUEST))
+      reject(new ExtError(httpStatus[httpStatus.BAD_REQUEST],httpStatus.BAD_REQUEST))
   })
 )

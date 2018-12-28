@@ -21,7 +21,6 @@ const fetch = ({ endpoint, body, headers = {} , method }) => (
     )
     .then((response) => response.json())
     .catch((error) => {
-      console.log(error)
       throw error
     }))
   

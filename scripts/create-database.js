@@ -1,11 +1,13 @@
-const entities = require('../src/entities/entities-base')
+import initEntities from '../src/entities/entities-base'
 
-const create = ({ force }) => {
+const create = ({ config }) => {
+  console.log('sss')
+  const entities = initEntities({ config })
   return Object
     .keys(entities)
     .map((key) => {
       return entities[key]
-        .sync({ force })
+        .sync({ force: config.force })
         .then(() => (
           console.log(`table ${key} created.`)
         ))
@@ -13,4 +15,4 @@ const create = ({ force }) => {
     })
 }
 
-module.exports = create
+export default create

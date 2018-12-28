@@ -8,7 +8,7 @@ import initControllerUtil from './controllersUtils'
 const init = ({ logger, config }) => {
     const isUserInRoleDB = (role) => Promise.resolve(true)
     const { onCatchUnAuthorize } = initControllerUtil({ logger })
-    const { Users } = initEntities({ config, logger })
+    const { Users } = initEntities({ config: config.database })
     const isUserInRole = ({ username, role }) => (
     //TODO: check if user is in role duo to database, if it does so return username if not return null
         isUserInRoleDB(username, role)

@@ -3,15 +3,19 @@
     "appName": "Node User managemens server",
     "port": 5300,
     "database": {
-      "name": "<Database name>",
-      "username": "<Database username>",
-      "password": "<Database password>",
-      "host": "<Database host>",
-      "dialect": "<Database type>",
-      "pool": {
-        "max": 5,
-        "min": 0,
-        "idle": 10000
+      "name": "user-managements-db",
+      "username": "user-managements-username",
+      "password": "user-managements-password",
+      "settings": {
+        "host": "localhost",
+        "dialect": "sqlite",
+        "storage": "/tmp/user-managements.sqlite",
+        "pool": {
+          "max": 5,
+          "min": 0,
+          "idle": 10000
+        },
+        "logging": false
       }
     },
     "email": {

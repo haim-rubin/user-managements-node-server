@@ -16,8 +16,8 @@ import initEmailManagements from '../services/emails-managements'
 const init = ({ config, logger, _3rdPartyProviders }) =>{
   const EmailService = {} //require('../services/email-service')
  
-  const {  Users, ActionVerifications } = initEntities({ config, logger })
-  const conn = initConn({ config, logger })
+  const {  Users, ActionVerifications } = initEntities({ config: config.database, logger })
+  const conn = initConn({ config: config.database })
   const { getVerifyResponseHTML } = initTemplateManagements(config)
   const { onCatch, onCatchLog } = initControllerUtil({ logger })
   const getPasswordEncrypt = (clearPassword) => (

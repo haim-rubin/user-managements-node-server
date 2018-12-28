@@ -46,6 +46,7 @@
     "uuid": "^3.1.0"
   },
   "devDependencies": {
-    "mocha": "^4.1.0"
+    "mocha": "^4.1.0",
+    "sqlite3": "^4.0.4"
   }
 }

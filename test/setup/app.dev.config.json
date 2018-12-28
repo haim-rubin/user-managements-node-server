@@ -1,0 +1,40 @@
+{
+  "verifyUserByAdmin": true,  
+  "appName":"User managemens",
+  "port": 5200,
+  "database": {
+    "name": "user-managements-db",
+    "username": "user-managements-username",
+    "password": "user-managements-password",
+    "settings": {
+      "host": "localhost",
+      "dialect": "sqlite",
+      "storage": "/tmp/user-managements.sqlite",
+      "pool": {
+        "max": 5,
+        "min": 0,
+        "idle": 10000
+      },
+      "logging": false
+    }
+  },
+  "email": {
+    "service": "service",
+    "user": "admin@mail.com",
+    "pass": "password",
+    "from": "admin@mail.com"
+  },
+  "verificationUrl": "http://localhost:5200/api/user/verify/",
+  "changePasswordUrl": "http://localhost:3000/change-password/",
+  "loginUrl": "http://localhost:3000",
+  "tokenHash": "dev-token-key",
+  "videoPath": "video-examples",
+  "media": {
+    "directory": "/home/haim/uploaded-media"
+  },
+  "adminEmail": "admin@mail.com",
+  "log4js": {
+    "appenders": { "app": { "type": "file", "filename": "app-name.log" } },
+    "categories": { "default": { "appenders": ["app"], "level": "all" } }
+  }
+}
