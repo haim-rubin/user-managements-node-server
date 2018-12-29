@@ -1,5 +1,5 @@
 {
-  "verifyUserByAdmin": false, 
+  "verifyUserByAdmin": false,
     "appName": "Node User managemens server",
     "port": 5300,
     "database": {
@@ -45,13 +45,13 @@
     },
     "loginWithThirdParty": true,
     "templates": {
-      "activationBody" : "../email-templates/activation/body.html",
-      "activationSubject" : "../email-templates/activation/subject.html",
-      "activationResponse" : "../email-templates/activation/response.html",
-      "activationBodyApproved" : "../email-templates/approved-activation/body.html",
-      "activationSubjectApproved" : "../email-templates/approved-activation/subject.html",
-      "notifyBodyAdminWhenUserCreated" : "../email-templates/notify-admin-when-user-created/body.html",
-      "notifySubjectAdminWhenUserCreated" : "../email-templates/notify-admin-when-user-created/subject.html"
+      "activationBody" : "./email-templates/activation/body.html",
+      "activationSubject" : "./email-templates/activation/subject.html",
+      "activationResponse" : "./email-templates/activation/response.html",
+      "activationBodyApproved" : "./email-templates/approved-activation/body.html",
+      "activationSubjectApproved" : "./email-templates/approved-activation/subject.html",
+      "notifyBodyAdminWhenUserCreated" : "./email-templates/notify-admin-when-user-created/body.html",
+      "notifySubjectAdminWhenUserCreated" : "./email-templates/notify-admin-when-user-created/subject.html"
     },
     "userRoute": "/user"
   }

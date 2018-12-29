@@ -1,14 +1,11 @@
-import dot from 'dot'
-import { readFile } from '../utils/fs-util'
-
-
-export const compileTemplate = dot.template
+import { template } from 'dot'
+import { readFileSync } from '../utils/fs-util'
+import fs from 'fs'
 
 export const compile = (fileName) => {
-    return readFile(fileName, 'utf8')
-        .then((template) => {
-            return compileTemplate(template)
-        })
+    return  template(
+        fs.readFileSync(fileName, 'utf8')
+        )
 }
 
 // var tempFn = doT.template("<h1>Here is a sample template {{=it.foo}}</h1>");

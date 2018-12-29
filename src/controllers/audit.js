@@ -2,7 +2,7 @@ const { Audit, Users, ActionVerifications } = require('../entities')
 const { config } = global
 const HttpError = require('../utils/HttpError')
 const httpStatus = require('http-status')
-
+const logger = () => {throw 'Logger not implemented'}
 const cleanBody = ({ password, retypePassword, ...cleanedBody }) => (
     cleanedBody
 )
@@ -53,7 +53,8 @@ const getWithUsername = ({ body, headers, query }) => (
                     )
                     .then((user) => {
                         if(!user || (user && !user.username)){
-                            throw new HttpError('User not identified', httpStatus.UNAUTHORIZED)
+                            logger.error('User not identified')
+                            throw new HttpError(httpStatus.UNAUTHORIZED)
                         }
                         return user
                     })

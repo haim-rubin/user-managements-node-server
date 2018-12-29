@@ -12,13 +12,16 @@ import HttpError from '../utils/HttpError'
 import initControllerUtil from './controllersUtils'
 import { extract } from '../utils/SequelizeHelper'
 import initEmailManagements from '../services/emails-managements'
-  
+import { compile } from '../services/template-render'
 const init = ({ config, logger, _3rdPartyProviders }) =>{
   const EmailService = {} //require('../services/email-service')
  
   const {  Users, ActionVerifications } = initEntities({ config: config.database, logger })
   const conn = initConn({ config: config.database })
-  const { getVerifyResponseHTML } = initTemplateManagements(config)
+  const { getVerifyResponseHTML } = initTemplateManagements({
+    ...config,
+    compile
+  })
   const { onCatch, onCatchLog } = initControllerUtil({ logger })
   const getPasswordEncrypt = (clearPassword) => (
     bcrypt.hashSync(clearPassword)
@@ -27,7 +30,12 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
     sendActivationEmail,
     sendResetPasswordEmail,
     sendApprovedActivationEmail,
-    sendNotificationToAdminWhenUserCreated } = initEmailManagements({ config })
+    sendNotificationToAdminWhenUserCreated } = initEmailManagements({
+      config: {
+        ...config,
+        compile
+      }
+    })
 
   const handleCustomErrorResponse = (res, error) => {
     res
@@ -61,9 +69,9 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
     { returning: true })
   )
 
-  const signUp = (req, res) => {
-    const { username, password } = req.body
-    const logPrefix = `User (${username}) - signUp ->`
+  const signUp = ({ username, password }) => {
+
+    const logPrefix = `User (${username}) - signUp:`
 
     logger
       .info(`${logPrefix} requested.`)
@@ -82,7 +90,7 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
                 .catch(error =>{
                   const { code } = error 
                   if('EAUTH' === code){
-                    throw new HttpError('Invalid email credentials, check email section in config', httpStatus.BAD_REQUEST)
+                    throw 'Invalid email credentials, check email section in config'
                   }
                   throw error
                 })
@@ -91,22 +99,25 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
               logger
                 .info(`${logPrefix} activation email sent to the user.`)
 
-              res
-                .status(httpStatus.CREATED)
-                .json({ message: 'USER_CREATED_EMAIL_VERIFICATION_SENT' })
+              return {
+                code: httpStatus.CREATED,
+                message: 'USER_CREATED_EMAIL_VERIFICATION_SENT'
+              }
             })
             .catch(
               sequelize.UniqueConstraintError,
-              (error) => {
-                logger
-                  .info(`${logPrefix} conflict user already exist.`)
-
-                throw new HttpError(httpStatus[httpStatus.CONFLICT], httpStatus.CONFLICT)
+              error => {
+                logger.error(error)
+                throw new HttpError(httpStatus.CONFLICT)
               }
             )
         ))
         .catch((error) => {
-          onCatch(error, res)
+          logger.error(error)
+          if(!(error instanceof HttpError)){
+            error = new HttpError()
+          }
+          throw error
         })
     )
   }

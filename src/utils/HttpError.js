@@ -1,20 +1,9 @@
+import httpStatus from 'http-status'
+
 class HttpError extends Error {
-    constructor(messageOrMessages, code){
-        messageOrMessages = [].concat(messageOrMessages || [])
-        
-        const message = messageOrMessages.join('\n')
-        
-        super(message)
-        Object
-            .assign(
-                this,
-                { 
-                    messageAll: message,
-                    list: messageOrMessages,
-                    code: code
-                }
-            )
-       
+    constructor(code = httpStatus.INTERNAL_SERVER_ERROR){
+        super(httpStatus[code])
+        this.code = code
         typeof Error.captureStackTrace === 'function' &&
             Error.captureStackTrace(this, this.constructor)
     }    

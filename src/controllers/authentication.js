@@ -4,6 +4,14 @@ import jwt from 'jsonwebtoken'
 import { getClientIp, getUserAgentObject } from '../services/user-agent'
 import HttpError from "../utils/HttpError";
 import initControllerUtil from './controllersUtils'
+import { extract } from '../utils/SequelizeHelper'
+const jwtVerify = (token, secretOrPublicKey) => (
+    new Promise((resolve, reject) => {
+        jwt.verify(token, secretOrPublicKey, ( err, decoded) => {
+            err? reject(err) : resolve(decoded)
+        })
+    })
+)
 
 const init = ({ logger, config }) => {
     const isUserInRoleDB = (role) => Promise.resolve(true)
@@ -16,30 +24,30 @@ const init = ({ logger, config }) => {
                 resolve({ username })
             })
             .catch(() => {
-                reject(new HttpError(`User is not in role (${role}`, httpStatus.UNAUTHORIZED))
+                logger.error(`User is not in role (${role}`)
+                reject(new HttpError( httpStatus.UNAUTHORIZED))
             })
     )
 
     const innerIsAuthenticated = ({ token }) => (
-        new Promise((resolve, reject) => {
-            jwt.verify(token, config.tokenHash, (err, decoded) => {
-                return err ?
-                    reject(new HttpError(err.message, httpStatus.UNAUTHORIZED)) :
-                    Users
-                        .findOne({ where: { token } })
-                        .then((response) => {
-                            if (!response) {
-                                throw new HttpError('User not exist', httpStatus.UNAUTHORIZED)
-                            }
-                            return response
-                        })
-                        .then(({ dataValues: user }) => user && user.token === token ? resolve(user) : reject(null))
-                        .catch((error) => {
-                            reject(error)
-                        })
-
-            })
-        })
+        jwtVerify(token, config.tokenHash)
+            .then(() => (
+                Users
+                    .findOne({ where: { token } })
+                    .then((user) => {
+                        if (!user) {
+                            throw `User doesn't not exist { token: ${token}} `
+                        }
+                        return user
+                    })
+                    .then(extract)
+                    .then(user => {
+                        if(!user || user.token !== token){
+                            throw `User with token ${token} not found`
+                        }
+                        return user
+                    })
+            ))
     )
 
     const setRequestWithUserInfo = ({ req, username, id }) => {
@@ -62,45 +70,38 @@ const init = ({ logger, config }) => {
         return { id }
     }
 
-    const validateAuthenticated = (req, res, next, role) => (
-        innerIsAuthenticated({ token: req.headers.token })
+    const validateAuthenticated = (token, role) => (
+        innerIsAuthenticated({ token })
             .then(info => (
-                role?
-                isUserInRole(role)
-                    .then(() => info) :
-                info
+                role
+                ? isUserInRole(role).then(() => info)
+                : info
             ))
-            .then(({ id, username }) => setRequestWithUserInfo({ username, id, req }))
-            .then(({ id }) => {
-                if(!id){
-                    throw new HttpError('User not exist', httpStatus.UNAUTHORIZED)
+            .then(user => {
+                if(!user.id){
+                    throw 'User not exist'
                 }
-                return { id }
+                return user
             })
             .catch((error) => {
-                onCatchUnAuthorize(error, res)
+                logger.error(error)
+                throw  new HttpError(httpStatus.UNAUTHORIZED)
             })
     )
 
-    const handleAuthenticated = (req, res, next, role) => (
-        validateAuthenticated(req, res, next, role)
-            .then(({ id }) => {
-                res
-                    .json(req.userInfo)
-            })
-    )
+    //.then(({ id, username }) => setRequestWithUserInfo({ username, id, req }))
 
     const isAuthenticated = (role) => (
         (req, res, next) => (
-            validateAuthenticated(req, res, next, role)
-            .then(({ id }) => {
+            validateAuthenticated(req.headers.token, res, role)
+            .then(() => {
                 next()
             })
         )
     )
 
     return {
-        handleAuthenticated,
+        validateAuthenticated,
         isAuthenticated
     }
 }

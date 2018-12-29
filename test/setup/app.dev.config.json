@@ -1,5 +1,5 @@
 {
-  "verifyUserByAdmin": true,  
+  "verifyUserByAdmin": false,
   "appName":"User managemens",
   "port": 5200,
   "database": {
@@ -19,10 +19,10 @@
     }
   },
   "email": {
-    "service": "service",
-    "user": "admin@mail.com",
-    "pass": "password",
-    "from": "admin@mail.com"
+    "service": "gmail",
+    "user": "users.managements@gmail.com",
+    "pass": "umn@2019",
+    "from": "users.managements@gmail.com"
   },
   "verificationUrl": "http://localhost:5200/api/user/verify/",
   "changePasswordUrl": "http://localhost:3000/change-password/",
@@ -32,9 +32,9 @@
   "media": {
     "directory": "/home/haim/uploaded-media"
   },
-  "adminEmail": "admin@mail.com",
+  "adminEmail": "users.managements@gmail.com",
   "log4js": {
-    "appenders": { "app": { "type": "file", "filename": "app-name.log" } },
+    "appenders": { "app": { "type": "file", "filename": "/home/haimr/log/app-name.log" } },
     "categories": { "default": { "appenders": ["app"], "level": "all" } }
   }
 }

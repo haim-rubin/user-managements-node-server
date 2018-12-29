@@ -1,3 +1,5 @@
+import HttpError from "../utils/HttpError";
+
 const init = ({
   signUp,
   signIn,
@@ -7,12 +9,28 @@ const init = ({
   verify,
   getUserInfo,
   isAuthenticated,
-  handleAuthenticated
+  validateAuthenticated
 }) => (userRoute) => {
-    
+
     userRoute
       .route('/sign-up')
-      .post(signUp)
+      .post((req, res) => {
+        const { username, password } = req.body
+        signUp({ username, password })
+          .then(({ code, message }) => {
+            res
+              .status(code)
+              .json({ message })
+          })
+          .catch(error => {
+            if(!(error instanceof HttpError)){
+              error = new HttpError()
+            }
+            res
+              .status(error.code)
+              .json(error.message)
+          })
+      })
 
     userRoute
       .route('/sign-in')
@@ -49,11 +67,27 @@ const init = ({
       })
 
     userRoute
-      .route('/is-authenticate')
+      .route('/is-authenticated')
       .post((req, res, next) => {
-        const { body: { role } } = req
-        return handleAuthenticated(req, res, next, role)
+        const {
+          body: { role },
+          headers: { token }
+        } = req
+
+        validateAuthenticated(token, role)
+          .then(() => {
+            next(req.userInfo)
+          })
+          .catch(error => {
+            if(!(error instanceof HttpError)){
+              error = new HttpError()
+            }
+
+            res
+                .status(error.code)
+                .json(error.message)
+          })
       })
   }
-  
+
 export default init

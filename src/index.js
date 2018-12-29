@@ -7,6 +7,7 @@ import initUserApis from './routes/users'
 import init3rdPartyProviders from './services/verify-third-party-token'
 import initAuthntication from './controllers/authentication'
 import initUsersComponents from './controllers/users'
+import path from 'path'
 
 const initUserImplementations = ({
   config,
@@ -21,12 +22,25 @@ const initUserImplementations = ({
   ...initAuthntication({ logger, config })
 })
 
+const getAbsoluteTemplates = (templates, dirname) => (
+  Object
+    .entries(templates)
+    .map(([key, value]) => ({
+      [key]: path.resolve(dirname, value)
+    }))
+    .reduce((acc, o) => ({...acc, ...o }), {})
+)
+
 const server = (appConfig) => (
   new Promise((resolve, reject ) => {
+
     try{
       const config = {
         ...configOption,
-        ...appConfig
+        ...appConfig,
+        templates: appConfig.templates
+        ? appConfig.templates
+        : getAbsoluteTemplates(configOption.templates, __dirname)
       }
 
       const logger = loggerInit(config.log4js).getLogger('app')

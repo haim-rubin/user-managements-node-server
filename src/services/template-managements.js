@@ -1,5 +1,4 @@
-import { compileTemplate } from './template-render'
-const init = ({ verificationUrl, loginUrl, appName, templates }) => {
+const init = ({ verificationUrl, loginUrl, appName, templates, compile }) => {
 
   const {
     activationBody,
@@ -11,14 +10,14 @@ const init = ({ verificationUrl, loginUrl, appName, templates }) => {
     notifySubjectAdminWhenUserCreated } = templates
 
   const getActivationEmailParams = ({ actionId, username }) => {
-    const body = compileTemplate(activationBody)({
+    const body = compile(activationBody)({
       verificationUrl,
       appName,
       actionId,
       username
     })
 
-    const subject = compileTemplate(activationSubject)({
+    const subject = compile(activationSubject)({
       appName
     })
 
@@ -27,14 +26,14 @@ const init = ({ verificationUrl, loginUrl, appName, templates }) => {
 
   const getApprovedActivationEmailParams = ({  username }) => {
     const body = 
-      compileTemplate(activationBodyApproved)({
+      compile(activationBodyApproved)({
           loginUrl,
           appName,
           username
       })
 
     const subject = 
-      compileTemplate(activationSubjectApproved)({
+      compile(activationSubjectApproved)({
           appName
       })
 
@@ -44,7 +43,7 @@ const init = ({ verificationUrl, loginUrl, appName, templates }) => {
   const getVerifyResponseHTML = ({ appName, error, link }) => {
   
     const html = 
-      compileTemplate(activationResponse)({
+      compile(activationResponse)({
           appName,
           error,
           link
@@ -55,14 +54,14 @@ const init = ({ verificationUrl, loginUrl, appName, templates }) => {
 
   const getNotifyAdminWhenUserCreatedParams = ({ username, fullName, admin }) => {
     const body =
-      compileTemplate(notifyBodyAdminWhenUserCreated)({
+      compile(notifyBodyAdminWhenUserCreated)({
         username,
         fullName,
         admin
       })
 
     const subject =
-      compileTemplate(notifySubjectAdminWhenUserCreated)({
+      compile(notifySubjectAdminWhenUserCreated)({
           appName,
           username
       })

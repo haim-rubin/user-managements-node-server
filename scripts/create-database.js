@@ -1,7 +1,6 @@
 import initEntities from '../src/entities/entities-base'
 
 const create = ({ config }) => {
-  console.log('sss')
   const entities = initEntities({ config })
   return Object
     .keys(entities)
