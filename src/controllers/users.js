@@ -77,7 +77,11 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
       .info(`${logPrefix} requested.`)
 
     return (
-      isValidUsernameAndPassword({ username, password }, new HttpError('INVALID_USERNAME_OR_PASSWORD', httpStatus.BAD_REQUEST))
+      isValidUsernameAndPassword({ username, password })
+        .catch(validation => {
+          logger.log(validation)
+          throw new HttpError(httpStatus.BAD_REQUEST, 'Invalid username / password policy')
+        })
         .then(() => (
           { username, password: getPasswordEncrypt(password), isValid: false }
         ))
@@ -245,30 +249,25 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
       .then(user => {
         if(!user.isValid){
           logger
-            .log(`${logPrefix} invalid`)
+            .log(`Invalid username / password`)
 
-          throw new HttpError('INVALID_USERNAME_OR_PASSWORD', httpStatus.BAD_REQUEST)
+          throw new HttpError(httpStatus.BAD_REQUEST)
         }
         return user
       })
       .then((user) => (
-        signUpThirdPartyUser(Object.assign({}, user, { thirdParty, password }))
+        signUpThirdPartyUser({
+          ...user,
+          thirdParty,
+          password
+        })
       ))
-      .then(user => generateUserToken(user))
-      .then(({ token }) => {
-        logger
-          .info(`${logPrefix} succeeded, user got token ${token}.`)
-        
-        res
-          .status(httpStatus.OK)
-          .json({ token })
-      })
       .catch((error) => {
         onCatch(error, res)
       })
   }
 
-  const signInUser = ({ username, password, res }) => {
+  const signInUser = ({ username, password }) => {
     const logPrefix = `User (${username}) - signInUser ->`
     
     logger
@@ -279,48 +278,28 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
         .findOne({ where: { username } })
         .then((response) => {
           if (!response) {
-            logger
-              .error(`${logPrefix} User not exist`)
-
-            throw new HttpError('INVALID_USERNAME_OR_PASSWORD', httpStatus.BAD_REQUEST)
+            throw 'User not exist'
           }
           return response
         })
         .then(extract)
         .then((user) => {
           if(!user.isValid){
-            logger
-              .error(`${logPrefix} User is not valid (${user.isValid})`)
-
-            throw new HttpError('INVALID_USERNAME_OR_PASSWORD', httpStatus.BAD_REQUEST)
+            throw 'User is not valid'
           }
           return user
         })
         .then((user) => (
           comparePassword(password, user.password)
             .then(() => user)
-            .catch((error) => { 
-              logger
-                .error(`${logPrefix} Invalid password.`)
-
-              throw new HttpError('INVALID_USERNAME_OR_PASSWORD', httpStatus.BAD_REQUEST)
+            .catch((error) => {
+              logger.error(error)
+              throw 'Invalid password'
             })
         ))
-        .then(user => generateUserToken(user, res))
-        .then(({ token }) => {
-          logger
-            .info(`${logPrefix} succeeded, got token ${token}.`)
-
-          res
-            .status(httpStatus.OK)
-            .json({ token })
-        })
-        .catch((error) => {
-          const { code, messageAll: message, list: messages } = error
-
-          res
-            .status(code)
-            .json({ message, messages })
+        .catch(error => {
+          logger.error(error)
+          throw new HttpError(httpStatus.UNAUTHORIZED)
         })
       )    
   }
@@ -336,6 +315,7 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
           signInViaThirdparty({ thirdParty, username, password, res }) :
           signInUser({ username, password, res })
       })
+      .then(user => generateUserToken(user))
       .catch((error) => {
       onCatch(error, res)
       })  

@@ -1,7 +1,6 @@
 import  initEntities from '../entities'
 import httpStatus  from 'http-status'
 import jwt from 'jsonwebtoken'
-import { getClientIp, getUserAgentObject } from '../services/user-agent'
 import HttpError from "../utils/HttpError";
 import initControllerUtil from './controllersUtils'
 import { extract } from '../utils/SequelizeHelper'
@@ -50,25 +49,7 @@ const init = ({ logger, config }) => {
             ))
     )
 
-    const setRequestWithUserInfo = ({ req, username, id }) => {
-        Object
-            .assign(
-                req, 
-                { userInfo: {
-                    id,
-                    username
-                    }
-                },
-                { 
-                    clientInfo: {
-                        ip: getClientIp(req),
-                        userAgen: getUserAgentObject(req)
-                        }
-                }
-            )
-
-        return { id }
-    }
+    
 
     const validateAuthenticated = (token, role) => (
         innerIsAuthenticated({ token })
@@ -93,7 +74,7 @@ const init = ({ logger, config }) => {
 
     const isAuthenticated = (role) => (
         (req, res, next) => (
-            validateAuthenticated(req.headers.token, res, role)
+            validateAuthenticated(req.headers.token, role)
             .then(() => {
                 next()
             })

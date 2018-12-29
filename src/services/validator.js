@@ -15,11 +15,23 @@ export const isValidPassword = (password) => (
   password.indexOf(' ') === -1
 )
 
-export const isValidUsernameAndPassword = ({ username, password }, error) => (
+const getValidation = (username, password) => ({
+    isValidPassword: isValidPassword(password),
+    isValidUsername: isValidUsername(username),
+    get isValid(){
+      return (
+        this.isValidPassword
+        && this.isValidUsername
+      ) 
+    }
+  })
+
+export const isValidUsernameAndPassword = ({ username, password }) => (
   new Promise((resolve, reject) => {
-    isValidPassword(password) && isValidUsername(username) ?
-      resolve(true) :
-      reject(error)
+    const credential = getValidation(username, password)
+    credential.isValid
+    ? resolve(true)
+    : reject(credential)
   })
 )
 

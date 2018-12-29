@@ -29,12 +29,9 @@
   "loginUrl": "http://localhost:3000",
   "tokenHash": "dev-token-key",
   "videoPath": "video-examples",
-  "media": {
-    "directory": "/home/haim/uploaded-media"
-  },
   "adminEmail": "users.managements@gmail.com",
   "log4js": {
-    "appenders": { "app": { "type": "file", "filename": "/home/haimr/log/app-name.log" } },
+    "appenders": { "app": { "type": "file", "filename": "./config/app-name.log" } },
     "categories": { "default": { "appenders": ["app"], "level": "all" } }
   }
 }

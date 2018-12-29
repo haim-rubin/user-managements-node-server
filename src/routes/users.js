@@ -12,6 +12,36 @@ const init = ({
   validateAuthenticated
 }) => (userRoute) => {
 
+  const setRequestWithUserInfo = ({ req, username, id }) => {
+    Object
+        .assign(
+            req, 
+            { userInfo: {
+                id,
+                username
+                }
+            },
+            { 
+                clientInfo: {
+                    ip: getClientIp(req),
+                    userAgen: getUserAgentObject(req)
+                    }
+            }
+        )
+
+    return { id }
+}
+//.then(({ id, username }) => setRequestWithUserInfo({ username, id, req }))
+
+const isAuthenticated = (role) => (
+  (req, res, next) => (
+      validateAuthenticated(req.headers.token, role)
+      .then(() => {
+          next()
+      })
+  )
+)
+
     userRoute
       .route('/sign-up')
       .post((req, res) => {

@@ -1,5 +1,16 @@
-const fetch = require('node-fetch')
-const httpStatus = require('http-status')
+import fetch from 'node-fetch'
+import httpStatus from 'http-status'
+import { getClientIp, getUserAgentObject } from './user-agent'
+
+
+const isAuthenticated = (role) => (
+    (req, res, next) => (
+        validateAuthenticated(req.headers.token, role)
+        .then(() => {
+            next()
+        })
+    )
+)
 
 const isAuthenticate = (endpoint) => (
     (req, res, next) => {
@@ -26,4 +37,4 @@ const isAuthenticate = (endpoint) => (
     }
 )
 
-module.exports = isAuthenticate
+export default isAuthenticate
