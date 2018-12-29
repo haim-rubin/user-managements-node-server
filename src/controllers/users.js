@@ -82,9 +82,11 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
           logger.log(validation)
           throw new HttpError(httpStatus.BAD_REQUEST, 'Invalid username / password policy')
         })
-        .then(() => (
-          { username, password: getPasswordEncrypt(password), isValid: false }
-        ))
+        .then(() => ({
+          username,
+          isValid: false,
+          password: getPasswordEncrypt(password)
+        }))
         .then((user) => (
           Users
             .create(user)
@@ -118,9 +120,6 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
         ))
         .catch((error) => {
           logger.error(error)
-          if(!(error instanceof HttpError)){
-            error = new HttpError()
-          }
           throw error
         })
     )

@@ -28,7 +28,7 @@ const getAbsoluteTemplates = (templates, dirname) => (
     .map(([key, value]) => ({
       [key]: path.resolve(dirname, value)
     }))
-    .reduce((acc, o) => ({...acc, ...o }), {})
+    .arrayPropToObject()
 )
 
 const server = (appConfig) => (
