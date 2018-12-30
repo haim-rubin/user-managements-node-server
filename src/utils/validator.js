@@ -1,6 +1,6 @@
 import validator from 'validator'
 import httpStatus from 'http-status'
-import HttpError from "../utils/HttpError";
+import HttpError from "./HttpError";
 const UuidVersion = 4
 
 export const isValidUsername = (email) => (
