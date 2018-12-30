@@ -309,7 +309,6 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
         ))
         .catch(error => {
           logger.error(error)
-
           throw new HttpError(httpStatus.UNAUTHORIZED)
         })
       )    
@@ -398,33 +397,18 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
     ) 
   }
 
-  const getUserInfo = (req, res) => {
-    const { username, id } = req.userInfo
-    const logPrefix = `User (${username}) - getUserInfo ->`
-
+  const getUserInfo = ({ username, id }) => {
     logger
-      .info(`${logPrefix} requested.`)
+      .info(`User info requested for (${username}).`)
 
-    Users.findOne({ where: { id } })
+    return Users.findOne({ where: { id } })
       .then(extract)
       .then(({ username, createdAt, updatedAt, profilePhoto }) => (
         { username, createdAt, updatedAt, profilePhoto }
       ))
-      .then(({ username, createdAt, updatedAt, profilePhoto }) => {
-        logger
-          .info(`${logPrefix} succeeded.`)
-
-        res
-          .status(httpStatus.OK)
-          .send({ username, createdAt, updatedAt, profilePhoto })
-      })
-      .catch((error) => {
-
-        logger
-          .error(`${logPrefix} ${error}.`)
-
-        res
-          .status(httpStatus.BAD_REQUEST)
+      .catch(error => {
+        logger.log(error)
+        throw error
       })
   }
 

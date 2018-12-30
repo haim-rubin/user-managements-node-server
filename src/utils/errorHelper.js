@@ -1,6 +1,7 @@
 import HttpError from './HttpError'
-export const getDefaultErrorIfNotSupplied = error => (
+import httpStatus from 'http-status'
+export const getDefaultErrorIfNotSupplied = (error, defaultHttpStatusCode = httpStatus.INTERNAL_SERVER_ERROR)  => (
     !(error instanceof HttpError)
-    ? new HttpError()
+    ? new HttpError(defaultHttpStatusCode)
     : error   
 )
