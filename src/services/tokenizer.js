@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken'
 
-export const getToken = id => (
+export const getToken = (id, tokenHash) => (
   Promise
-    .resolve({ token: jwt.sign(id, global.config.tokenHash) })
+    .resolve({ token: jwt.sign(id, tokenHash) })
 )

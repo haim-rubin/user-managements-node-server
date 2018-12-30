@@ -2,7 +2,7 @@ import initConn from '../entities/conn'
 import httpStatus from 'http-status'
 import sequelize from 'sequelize'
 import bcrypt from 'bcrypt-nodejs'
-import { THIRDPARTY, ACTION_VERIFICATIONS } from '../consts'
+import { THIRDPARTY, ACTION_VERIFICATIONS, VERBAL_CODE } from '../consts'
 import initEntities from '../entities'
 import { isValidActionId, isValidUsernameAndPassword } from '../services/validator'
 import { last, first } from 'lodash'
@@ -69,6 +69,12 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
     { returning: true })
   )
 
+  const POLICY_CODE_MAPPER = {
+    [`${true}-${true}`]: VERBAL_CODE.INVALID_USERNAME_PASSWORD_POLICY,
+    [`${true}-${false}`]: VERBAL_CODE.INVALID_USERNAME_POLICY,
+    [`${false}-${true}`]: VERBAL_CODE.INVALID_PASSWORD_POLICY
+  }
+
   const signUp = ({ username, password }) => {
 
     const logPrefix = `User (${username}) - signUp:`
@@ -80,7 +86,12 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
       isValidUsernameAndPassword({ username, password })
         .catch(validation => {
           logger.log(validation)
-          throw new HttpError(httpStatus.BAD_REQUEST, 'Invalid username / password policy')
+          const {
+            isValidPassword,
+            isValidUsername
+          } = validation
+          const code = POLICY_CODE_MAPPER[`${isValidUsername}-${isValidPassword}`]
+          throw new HttpError(httpStatus.BAD_REQUEST, code)
         })
         .then(() => ({
           username,
@@ -96,25 +107,25 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
                 .catch(error =>{
                   const { code } = error 
                   if('EAUTH' === code){
-                    throw 'Invalid email credentials, check email section in config'
+                    throw VERBAL_CODE.INVALID_EMAIL_CREDENTIALS_CHECK_EMAIL_SECTION_IN_CONFIG
                   }
                   throw error
                 })
             ))
             .then(() => {
               logger
-                .info(`${logPrefix} activation email sent to the user.`)
+                .info(`${logPrefix} ${VERBAL_CODE.USER_CREATED_EMAIL_VERIFICATION_SENT}`)
 
               return {
                 code: httpStatus.CREATED,
-                message: 'USER_CREATED_EMAIL_VERIFICATION_SENT'
+                message: VERBAL_CODE.USER_CREATED_EMAIL_VERIFICATION_SENT
               }
             })
             .catch(
               sequelize.UniqueConstraintError,
               error => {
                 logger.error(error)
-                throw new HttpError(httpStatus.CONFLICT)
+                throw new HttpError(httpStatus.CONFLICT, VERBAL_CODE.USERNAME_ALREADY_EXIST)
               }
             )
         ))
@@ -237,7 +248,7 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
     })
   )
 
-  const signInViaThirdparty = ({ thirdParty, username, password, res }) => {
+  const signInViaThirdparty = ({ thirdParty, username, password }) => {
     const logPrefix = `User (${username}) - signInViaThirdparty (${thirdParty}) ->`
     
     logger
@@ -248,9 +259,12 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
       .then(user => {
         if(!user.isValid){
           logger
-            .log(`Invalid username / password`)
+            .log(`${VERBAL_CODE.INVALID_USERNAME_OR_TOKEN} - ${username}`)
 
-          throw new HttpError(httpStatus.BAD_REQUEST)
+          throw new HttpError(
+            httpStatus.UNAUTHORIZED,
+            VERBAL_CODE.INVALID_USERNAME_OR_TOKEN
+          )
         }
         return user
       })
@@ -261,9 +275,6 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
           password
         })
       ))
-      .catch((error) => {
-        onCatch(error, res)
-      })
   }
 
   const signInUser = ({ username, password }) => {
@@ -298,26 +309,23 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
         ))
         .catch(error => {
           logger.error(error)
+
           throw new HttpError(httpStatus.UNAUTHORIZED)
         })
       )    
   }
 
-  const signIn = (req, res) => {
-    const { username, password, thirdParty } = req.body
+  const signIn = ({ username, password, thirdParty }) => {
     logger
       .info(`User (${username}) - signIn -> signIn requested.`)
 
-    isValidUsernameAndPassword({ username, password })
-      .then((isValid) => {
+    return isValidUsernameAndPassword({ username, password })
+      .then(() => (
         config.loginWithThirdParty && thirdParty ?
-          signInViaThirdparty({ thirdParty, username, password, res }) :
-          signInUser({ username, password, res })
-      })
+          signInViaThirdparty({ thirdParty, username, password }) :
+          signInUser({ username, password })
+      ))
       .then(user => generateUserToken(user))
-      .catch((error) => {
-      onCatch(error, res)
-      })  
   }
 
   const loginVia3rdParty = ({ username, token, thirdParty }) => {
@@ -362,13 +370,16 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
       .then(extract)
   )
 
-  const signUpThirdPartyUser = ({ thirdParty, isValid, password, id, email: username, profilePhoto, name: fullName }) => (
+  const signUpThirdPartyUser = ({ thirdParty, password, email: username, profilePhoto, name: fullName }) => (
     Users
       .findOne({ where: { username }, returning: true })
         .then(user => (
           user ?
 
-            updateUser({ [thirdPartyProp[thirdParty]]: password, profilePhoto }, { username }) :
+            updateUser({
+              [thirdPartyProp[thirdParty]]: password,
+              profilePhoto
+            }, { username }) :
 
             createUser({ username, password, fullName, [thirdPartyProp[thirdParty]]: password, profilePhoto, isValid: true })
               .then((user) => {
@@ -422,14 +433,14 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
       .info(`User (${user.username}) -> generateUserToken requested.`)
 
     return new Promise((resolve, reject) => (
-        getToken(user.id)
+        getToken(user.id, config.tokenHash)
           .then(({ token }) => (
             Users
-              .update({ token }, { where: { id: user.id }, returning: true })
+              .update({ token }, { where: { id: user.id } }, {returning: true })
               .then((response) => {
                 response ?
                   resolve({ token }) :
-                  reject({ message: 'INVALID_USERNAME_OR_PASSWORD' })
+                  reject({ message: VERBAL_CODE.INVALID_USERNAME_OR_PASSWORD })
               })
           ))
     ))

@@ -1,3 +1,4 @@
+import './polyfills'
 import configOption from './configOption'
 import express from 'express'
 import bodyParser from 'body-parser'

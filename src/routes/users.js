@@ -1,5 +1,5 @@
 import HttpError from "../utils/HttpError";
-
+import { getDefaultErrorIfNotSupplied } from '../utils/errorHelper'
 const init = ({
   signUp,
   signIn,
@@ -11,6 +11,15 @@ const init = ({
   isAuthenticated,
   validateAuthenticated
 }) => (userRoute) => {
+
+  const responseError = res => error => {
+    const { httpStatusCode, message } =
+      getDefaultErrorIfNotSupplied(error)
+
+      res
+        .status(httpStatusCode)
+        .json({ message })
+  }
 
   const setRequestWithUserInfo = ({ req, username, id }) => {
     Object
@@ -47,24 +56,25 @@ const isAuthenticated = (role) => (
       .post((req, res) => {
         const { username, password } = req.body
         signUp({ username, password })
-          .then(({ code, message }) => {
+          .then(({ httpStatusCode, message }) => {
             res
-              .status(code)
+              .status(httpStatusCode)
               .json({ message })
           })
-          .catch(error => {
-            if(!(error instanceof HttpError)){
-              error = new HttpError()
-            }
-            res
-              .status(error.code)
-              .json(error.message)
-          })
+          .catch(responseError(res))
       })
 
     userRoute
       .route('/sign-in')
-      .post(signIn)
+      .post((req, res) => {
+        const { username, password, thirdParty } = req.body
+        signIn({ username, password, thirdParty })
+          .then(payload =>{
+            res
+              .json(payload)
+          })
+          .catch(responseError(res))
+      })
 
     userRoute
       .route('/sign-out')
