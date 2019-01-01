@@ -26,13 +26,13 @@ const init = ({
   const setRequestWithUserInfo = ({ req, username, id }) => {
     Object
         .assign(
-            req, 
+            req,
             { userInfo: {
                 id,
                 username
                 }
             },
-            { 
+            {
                 clientInfo: {
                     ip: getClientIp(req),
                     userAgen: getUserAgentObject(req)
@@ -84,7 +84,20 @@ const init = ({
 
   userRoute
     .route('/forgot-password')
-    .post(forgotPassword)
+    .post((req, res) =>{
+      const { username } = req.body
+      forgotPassword({ username })
+        .then(({ httpStatusCode, message }) => {
+          res
+            .status(httpStatusCode)
+            .json({ message })
+        })
+        .catch(error => {
+          console.log(error)
+          throw error
+        })
+        .catch(responseError(res))
+    })
 
   userRoute
     .route('/change-password')

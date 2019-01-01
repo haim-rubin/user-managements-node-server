@@ -15,7 +15,7 @@ import initEmailManagements from '../services/emails-managements'
 import { compile } from '../services/template-render'
 const init = ({ config, logger, _3rdPartyProviders }) =>{
   const EmailService = {} //require('../services/email-service')
- 
+
   const {  Users, ActionVerifications } = initEntities({ config: config.database, logger })
   const conn = initConn({ config: config.database })
   const { getVerifyResponseHTML } = initTemplateManagements({
@@ -57,15 +57,15 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
     setActionVerification({
       username,
       actionType: ACTION_VERIFICATIONS.ACTIVATE_USER
-    }, 
+    },
     { returning: true })
   )
 
   const getForgotPasswordActionVerification = ({ username }) => (
-    setActionVerification({ 
-      username, 
-      actionType: ACTION_VERIFICATIONS.FORGORT_PASSWORD 
-    }, 
+    setActionVerification({
+      username,
+      actionType: ACTION_VERIFICATIONS.FORGORT_PASSWORD
+    },
     { returning: true })
   )
 
@@ -105,7 +105,7 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
             .then((info) => (
               sendActivationEmail(info)
                 .catch(error =>{
-                  const { code } = error 
+                  const { code } = error
                   if('EAUTH' === code){
                     throw VERBAL_CODE.INVALID_EMAIL_CREDENTIALS_CHECK_EMAIL_SECTION_IN_CONFIG
                   }
@@ -188,7 +188,7 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
             if (!user) {
               logger
                 .error(`User not exist.`)
-            
+
               throw new HttpError(`User not exist.`, httpStatus.BAD_REQUEST)
             }
             return user
@@ -212,7 +212,7 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
       ))
       .then(({ effected, transaction, username }) => {
         transaction.commit()
-  
+
         logger
           .info(`User (${username}) - verify -> user activated.`)
 
@@ -238,19 +238,19 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
   }
 
   const isThirdpartySupprted = (thirdParty) => (
-    new Promise((resolve, reject) => {    
+    new Promise((resolve, reject) => {
       if(!_3rdPartyProviders[thirdParty]){
         logger.error(`${thirdParty} unsupported, if you wish for support extends providers api`)
         reject(new HttpError(httpStatus[httpStatus.BAD_REQUEST], httpStatus.BAD_REQUEST))
         return
-      } 
+      }
       resolve(true)
     })
   )
 
   const signInViaThirdparty = ({ thirdParty, username, password }) => {
     const logPrefix = `User (${username}) - signInViaThirdparty (${thirdParty}) ->`
-    
+
     logger
       .info(`${logPrefix} requested.`)
 
@@ -279,7 +279,7 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
 
   const signInUser = ({ username, password }) => {
     const logPrefix = `User (${username}) - signInUser ->`
-    
+
     logger
       .info(`${logPrefix} requested.`)
 
@@ -311,7 +311,7 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
           logger.error(error)
           throw new HttpError(httpStatus.UNAUTHORIZED)
         })
-      )    
+      )
   }
 
   const signIn = ({ username, password, thirdParty }) => {
@@ -394,7 +394,7 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
     return (
       !!_3rdPartyProviders[thirdParty]
       && loginVia3rdParty({ username, token, thirdParty })
-    ) 
+    )
   }
 
   const getUserInfo = ({ username, id }) => {
@@ -438,47 +438,44 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
     })
   )
 
-  const forgotPassword = (req, res) => {
-    const { username } = req.body
+  const forgotPassword = ({ username }) => {
     logger.info(`User (${username}) - forgotPassword`)
-    Users
-      .findOne({ where: { username }, returning: true })
-      .then(user => {
-        if (!user) {
-          logger.error(`User (${username}) - forgotPassword -> User doesn't exist.`)
-          res
-            .status(httpStatus.NOT_FOUND)
-            .json({ message: httpStatus[httpStatus.NOT_FOUND] })
-        }
 
-        return user.dataValues
-      })
-      .then((user) => {
-        if (!user.isValid) {
-          logger.error(`User (${username}) - forgotPassword -> User is not valid or not activated yet.`)
-          res
-            .status(httpStatus.BAD_REQUEST)
-            .json({ message: httpStatus[httpStatus.BAD_REQUEST] })
-        }
-        return user
-      })
-      .then(getForgotPasswordActionVerification)
-      .then(sendResetPasswordEmail)
-      .then((emailResponse) =>{
-        logger
-          .info(`User (${username}) - forgotPassword -> reset link sent to user.`)
-        res
-          .status(httpStatus.OK)
-          .json({ message: 'RESTORE_PASSWORD_LINK_SENT_TO_YOUR_EMAIL' })
-      })    
-      .catch((error) => {
-        logger
-          .error(`User (${username}) - forgotPassword -> ${error}.`)
-        
-        res
-          .status(httpStatus.BAD_REQUEST)
-          .json({ error })
-      })
+    return (
+      Users
+        .findOne({ where: { username }, returning: true })
+        .then(user => {
+          if (!user) {
+            logger
+              .error(`User doesn't exist (${username}).`)
+
+            throw new HttpError(httpStatus.NOT_FOUND)
+          }
+          return user
+        })
+        .then(extract)
+        .then((user) => {
+          if (!user.isValid) {
+            logger
+              .error(`User is not valid or not activated yet (${username}).`)
+
+            throw new HttpError (httpStatus.FORBIDDEN)
+          }
+          return user
+        })
+        .then(getForgotPasswordActionVerification)
+        .then(sendResetPasswordEmail)
+        .then(() => {
+
+          logger
+            .info(`Reset link sent to user (${username}).`)
+
+          return {
+            httpStatusCode: httpStatus.OK,
+            message: VERBAL_CODE.RESTORE_PASSWORD_LINK_SENT_TO_USER_IS_EMAIL
+          }
+        })
+    )
   }
 
   const changePassword = (req, res) => {
@@ -497,8 +494,8 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
               throw new Error(httpStatus.BAD_REQUEST)
             }
             const { dataValues } = actionVerification
-            logger.info(`changePassword: user ${dataValues.username} request to change password`)  
-            return 
+            logger.info(`changePassword: user ${dataValues.username} request to change password`)
+            return
           })
           .then(({ actionId }) => {
             return ActionVerifications
