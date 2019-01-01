@@ -37,6 +37,16 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
       }
     })
 
+  const throwIfInvalid = (error, httpStatusCode) => response => {
+    if (!response) {
+      logger
+        .error(error)
+
+      throw new HttpError(httpStatusCode)
+    }
+    return response
+  }
+
   const handleCustomErrorResponse = (res, error) => {
     res
       .status(httpStatus[error.message] ? error.message : httpStatus.INTERNAL_SERVER_ERROR)
@@ -478,93 +488,98 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
     )
   }
 
-  const changePassword = (req, res) => {
-    const { actionId } = req.params
-    const { password } = req.body
-    const { username } = req.userInfo
-    logger.info(`User ${username} - changePassword: user request to change password with actionId ${actionId}`)
-    isValidActionId({ actionId })
-      .then(() => conn.transaction())
-      .then(transaction => (
-        ActionVerifications
-          .findOne({ where: { actionId, deleted: false, actionType: ACTION_VERIFICATIONS.FORGORT_PASSWORD } })
-          .then((actionVerification) => {
-            if (!actionVerification) {
-              logger.error('changePassword: ActionVerification record not found, probabbly obsolete')
-              throw new Error(httpStatus.BAD_REQUEST)
-            }
-            const { dataValues } = actionVerification
-            logger.info(`changePassword: user ${dataValues.username} request to change password`)
-            return
-          })
-          .then(({ actionId }) => {
-            return ActionVerifications
-              .update(
-              { deleted: true },
-              {
-                where:
-                { actionId, actionType: ACTION_VERIFICATIONS.FORGORT_PASSWORD },
-                returning: true,
-                transaction
-              })
-              .then((actionVerificationUpdated) => {
-                return first(last(actionVerificationUpdated))
-              })
-              .then((actionVerificationUpdated) => {
-                return {
-                  actionVerification: actionVerificationUpdated.dataValues,
-                  transaction
-                }
-              })
-          })
-          .then(({ actionVerification, transaction }) => (
-            Users
-              .findOne({ where: { username: actionVerification.username, isValid: true } })
-              .then(user => {
-                if (!user) {
-                  logger.error('changePassword: User record not found, probabbly user deleted from the system')
-                  throw new Error(httpStatus.BAD_REQUEST)
-                }
+  const isPasswordsEqual = ({ password, confirmPassword }) => (
+    new Promise((resolve, reject) => {
+      password === confirmPassword
+        ? resolve()
+        : reject()
+    })
+  )
 
-                return {
-                  user: user.dataValues,
-                  transaction
+  const updateActionVerificationRequest = transaction => ({ actionId }) => (
+    ActionVerifications
+      .update(
+        { deleted: true },
+        {
+          where:
+          { actionId, actionType: ACTION_VERIFICATIONS.FORGORT_PASSWORD },
+          returning: true,
+          transaction
+        }
+      )
+      .then((actionVerification) => {
+        return first(last(actionVerification))
+      })
+      .then(extract)
+      .then((actionVerification) => {
+        return {
+          actionVerification,
+          transaction
+        }
+      })
+  )
+
+  const changeUserPassword = ({ id, password, transaction }) => (
+    Users
+      .update(
+        { password: getPasswordEncrypt(password) },
+        {
+          where: { id },
+          transaction,
+          returning: true
+        }
+      )
+  )
+
+  const changePassword = ({ actionId, password, confirmPassword }) => (
+    isPasswordsEqual({ password, confirmPassword })
+      .then(() =>
+        isValidActionId({ actionId })
+          .then(() => conn.transaction())
+          .then(transaction => (
+            ActionVerifications
+              .findOne({
+                where: {
+                  actionId,
+                  deleted: false,
+                  actionType: ACTION_VERIFICATIONS.FORGORT_PASSWORD
                 }
               })
-          ))
-          .then(({ user, transaction }) => (
-            Users
-              .update(
-              { password: getPasswordEncrypt(password) },
-              {
-                where: { id: user.id },
-                transaction,
-                returning: true
-              }
+              .then(
+                throwIfInvalid(
+                  'ActionVerification record not found or obsolete',
+                  httpStatus.NOT_FOUND
+                )
               )
-              .then((userMetadata) => ({
-                effected: !!userMetadata[0],
-                transaction
+              .then(extract)
+              .then(updateActionVerificationRequest(transaction))
+              .then(({ actionVerification, transaction }) => (
+                Users
+                  .findOne({ where: { username: actionVerification.username, isValid: true } })
+                  .then(
+                    throwIfInvalid(
+                      'User record not found, probabbly user deleted from the system',
+                      httpStatus.NOT_FOUND
+                    )
+                  )
+                  .then(extract)
+                  .then(user = ({ user, transaction }))
+              ))
+              .then(({ user, transaction }) => (
+                changeUserPassword({ id: user.id, password, transaction})
+                  .then(() => transaction.commit() )
+              ))
+              .then(() => ({
+                httpStatusCode: httpStatus.OK,
+                message: VERBAL_CODE.PASSWORD_SUCCESSFULLY_CHANGED
               }))
               .catch((error) => {
-                logger.error(`changePassword: ${error}`)
-                throw new Error(httpStatus.INTERNAL_SERVER_ERROR)
+                transaction.rollback()
+                throw error
               })
           ))
-          .then(({ effected, transaction }) => {
-            transaction.commit()
-            logger.info('changePassword: Password successfully changed for user')
-            res
-              .status(httpStatus.OK)
-              .json({ message: 'PASSWORD_SUCCESSFULLY_CHANGED' })
-          })
-          .catch((error) => {
-            logger.error(`changePassword: ${error}`)
-            transaction.rollback()
-            handleCustomErrorResponse(res, error)
-          })
-      ))
-  }
+        )
+  )
 
   const signOut = (req, res) => {
 

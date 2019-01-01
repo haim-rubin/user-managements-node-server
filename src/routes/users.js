@@ -14,13 +14,21 @@ const init = ({
   validateAuthenticated
 }) => (userRoute) => {
 
-  const responseError = (res, defaultHttpStatusCode) => error => {
-    const { httpStatusCode, message } =
-      getDefaultErrorIfNotSupplied(error, defaultHttpStatusCode)
+  const response = ({ res, httpStatusCode, data }) => {
+    res
+      .status(httpStatusCode)
+      .json(data || { message: httpStatus[httpStatusCode] })
+  }
 
-      res
-        .status(httpStatusCode)
-        .json({ message })
+  const responseOk = res => ({ httpStatusCode = httpStatus.OK, ...data }) => {
+    response({ res, httpStatusCode, data })
+  }
+
+  const responseError = (res, defaultHttpStatusCode) => error => {
+    response({
+      res,
+      ...getDefaultErrorIfNotSupplied(error, defaultHttpStatusCode)
+    })
   }
 
   const setRequestWithUserInfo = ({ req, username, id }) => {
@@ -58,11 +66,7 @@ const init = ({
     .post((req, res) => {
       const { username, password } = req.body
       signUp({ username, password })
-        .then(({ httpStatusCode, message }) => {
-          res
-            .status(httpStatusCode)
-            .json({ message })
-        })
+        .then(responseOk(res))
         .catch(responseError(res))
     })
 
@@ -71,10 +75,7 @@ const init = ({
     .post((req, res) => {
       const { username, password, thirdParty } = req.body
       signIn({ username, password, thirdParty })
-        .then(payload =>{
-          res
-            .json(payload)
-        })
+        .then(responseOk(res))
         .catch(responseError(res))
     })
 
@@ -87,11 +88,7 @@ const init = ({
     .post((req, res) =>{
       const { username } = req.body
       forgotPassword({ username })
-        .then(({ httpStatusCode, message }) => {
-          res
-            .status(httpStatusCode)
-            .json({ message })
-        })
+        .then(responseOk(res))
         .catch(error => {
           console.log(error)
           throw error
@@ -101,7 +98,17 @@ const init = ({
 
   userRoute
     .route('/change-password')
-    .post(changePassword)
+    .post((req, res) => {
+      const { actionId } = req.params
+      const { password, confirmPassword } = req.body
+
+      changePassword({ actionId, password, confirmPassword })
+        .then(({ httpStatusCode, message }) => {
+          res
+            .status(httpStatusCode)
+            .json({ message })
+        })
+    })
 
   userRoute
     .route('/verify/:actionId')
