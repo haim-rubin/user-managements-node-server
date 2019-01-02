@@ -43,7 +43,7 @@
     "pg": "^7.1.0",
     "sequelize": "^4.4.3",
     "useragent": "^2.2.1",
-    "uuid": "^3.1.0"
+    "uuid": "^3.3.2"
   },
   "devDependencies": {
     "mocha": "^5.2.0",

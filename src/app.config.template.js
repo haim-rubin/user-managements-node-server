@@ -16,13 +16,13 @@ const devConfig = {
   email: {
     service: '<Email service>',
     user: '<User email>',
-    pass: '<User email password>',   
+    pass: '<User email password>',
   },
   verificationUrl: `<Domain>/api/user/verify/`,
   changePasswordUrl: `<Domain>/change-password/`,
   loginUrl: '<Domain>/login',
-  tokenHash: 'any-token-key-for-jwt', 
-    
+  tokenHash: 'any-token-key-for-jwt',
+
   //In case you want supports for facebook login
   //On client side when you send login request you need to send the following structure:
   // { username, password: <Facebook Token>, thirdParty:'facebook' }
@@ -31,7 +31,7 @@ const devConfig = {
     APP_SECRET: '<App Secret>',
     VERSION: '<Graph version>' //v2.9 etc...
   },
-  
+
   //In case you want supports for google login
   //On client side when you send login request you need to send the following structure:
   // { username, password: <Google Token>, thirdParty:'google' }
@@ -42,5 +42,4 @@ const devConfig = {
   },
   adminEmail: '<Admin email addres>'
 }
-
-module.exports = devConfig
+export default devConfig

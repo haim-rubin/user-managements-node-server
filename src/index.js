@@ -69,7 +69,7 @@ const server = (appConfig) => (
           host: server.address().address,
           port: server.address().port,
           stop: server.close
-        })  
+        })
       })
       }catch(error){
         reject(error)
@@ -77,7 +77,7 @@ const server = (appConfig) => (
     })
   )
 
-module.exports = {
+export {
   server,
   isAuthenticate
 }

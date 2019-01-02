@@ -1,9 +1,9 @@
 import HttpError from "../utils/HttpError";
 import httpStatus from 'http-status'
 import validator from 'validator'
+import writeAudit from './audit'
 
 const init = ({ logger }) => {
-    const { writeAudit } = require('./audit')
 
     const onCatchLog = (error) => {
         const { code, messageAll: message, list: messages } = error

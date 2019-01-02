@@ -14,7 +14,7 @@ import { extract } from '../utils/SequelizeHelper'
 import initEmailManagements from '../services/emails-managements'
 import { compile } from '../services/template-render'
 const init = ({ config, logger, _3rdPartyProviders }) =>{
-  const EmailService = {} //require('../services/email-service')
+  const EmailService = {} //from '../services/email-service'
 
   const {  Users, ActionVerifications } = initEntities({ config: config.database, logger })
   const conn = initConn({ config: config.database })
@@ -22,7 +22,7 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
     ...config,
     compile
   })
-  const { onCatch, onCatchLog } = initControllerUtil({ logger })
+  const { onCatchLog } = initControllerUtil({ logger })
   const getPasswordEncrypt = (clearPassword) => (
     bcrypt.hashSync(clearPassword)
   )

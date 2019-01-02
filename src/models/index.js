@@ -1,8 +1,8 @@
-const Users = require('./Users')
-const ActionVerifications = require('./ActionVerifications')
-const Audit = require('./Audit')
+import Users from './Users'
+import ActionVerifications from './ActionVerifications'
+import Audit from './Audit'
 
-module.exports = {
+export default {
     Users,
     Audit,
     ActionVerifications

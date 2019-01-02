@@ -1,6 +1,7 @@
-const uuid = require('uuid')
+import uuid from 'uuid'
 
-module.exports = (conn, DataTypes) => (
+const init = uuid => (
+  (conn, DataTypes) =>
     conn.define('Audit', {
         id: {
             type: DataTypes.UUID,
@@ -25,3 +26,5 @@ module.exports = (conn, DataTypes) => (
         freezeTableName: true
     })
 )
+
+export default init(uuid)

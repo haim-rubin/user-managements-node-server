@@ -1,8 +1,10 @@
-const { Audit, Users, ActionVerifications } = require('../entities')
-const { config } = global
-const HttpError = require('../utils/HttpError')
-const httpStatus = require('http-status')
-const logger = () => {throw 'Logger not implemented'}
+import entities from '../entities'
+import HttpError from '../utils/HttpError'
+import  httpStatus from 'http-status'
+const { Audit, Users } = entities
+const logger = () => {
+    throw 'Logger not implemented'
+}
 const cleanBody = ({ password, retypePassword, ...cleanedBody }) => (
     cleanedBody
 )
@@ -18,18 +20,18 @@ const getAuditParams = ({ body, originalUrl, query, params }) => (
                     .assign(
                         {},
                         {
-                            body: 
+                            body:
                                 Object
                                     .assign(
-                                        {}, 
+                                        {},
                                         cleanBody(body)
                                     ),
                             query,
                             params
                         }
                     )
-                ) 
-            }      
+                )
+            }
         )
 )
 
@@ -38,7 +40,7 @@ const getToken = ({ headers, query }) => (
 )
 
 const getWithUsername = ({ body, headers, query }) => (
-    
+
         body.username?
 
             Promise.resolve(body) :
@@ -66,11 +68,11 @@ const getWithUsername = ({ body, headers, query }) => (
                     ActionVerification
                         .findOne(
                             {
-                                where: { actionId: query.actionId, deleted: false } 
+                                where: { actionId: query.actionId, deleted: false }
                             }
                         )
     )
-  
+
 
 const writeAudit = (req) => (
     getWithUsername(req)
@@ -83,10 +85,10 @@ const writeAudit = (req) => (
                             originalUrl: req.originalUrl,
                             query: req.query,
                             params: req.params
-                        }   
+                        }
                     )
             ))
-        )          
+        )
     )
 
-module.exports = { writeAudit }
+export default writeAudit

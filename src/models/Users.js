@@ -1,8 +1,7 @@
-const uuid = require('uuid')
+import uuid from 'uuid'
 
-module.exports = (conn, DataTypes) => (
-  
-  conn.define('Users', {    
+const init = uuid => (
+  (conn, DataTypes) => conn.define('Users', {
     id: {
       type: DataTypes.UUID,
       allowNull: false,
@@ -45,9 +44,11 @@ module.exports = (conn, DataTypes) => (
       type: DataTypes.BOOLEAN,
       defaultValue: false
     }
-    
+
   },
     {
         freezeTableName: true
     })
-)
+ )
+
+ export default init(uuid)

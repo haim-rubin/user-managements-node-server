@@ -1,1 +1,1 @@
-module.exports = require('./entities-base')
+export { default } from './entities-base'
