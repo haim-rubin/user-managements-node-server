@@ -1,3 +1,2 @@
-
-require = require("esm")(module/*, options*/)
-module.exports = require('./setup')
+import init from './setup'
+init()

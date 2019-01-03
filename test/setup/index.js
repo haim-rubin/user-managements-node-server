@@ -1,3 +1,2 @@
-
-require = require("esm")(module/*, options*/)
-module.exports = require('./run')
+import init from './server'
+export default init

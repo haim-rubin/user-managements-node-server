@@ -128,7 +128,7 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
 
               return {
                 code: httpStatus.CREATED,
-                message: VERBAL_CODE.USER_CREATED_EMAIL_VERIFICATION_SENT
+                message: httpStatus[httpStatus.CREATED]
               }
             })
             .catch(

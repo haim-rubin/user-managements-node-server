@@ -1,7 +1,7 @@
 {
   "verifyUserByAdmin": false,
   "appName":"User managemens",
-  "port": 5200,
+  "port": 5000,
   "database": {
     "name": "user-managements-db",
     "username": "user-managements-username",
@@ -24,7 +24,7 @@
     "pass": "umn@2019",
     "from": "users.managements@gmail.com"
   },
-  "verificationUrl": "http://localhost:5200/api/user/verify/",
+  "verificationUrl": "http://localhost:5000/api/user/verify/",
   "changePasswordUrl": "http://localhost:3000/change-password/",
   "loginUrl": "http://localhost:3000",
   "tokenHash": "dev-token-key",

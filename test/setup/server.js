@@ -1,7 +1,9 @@
 import { server } from '../../index'
 import config from './app.dev.config'
 import create from '../../scripts/create-database'
+import removeDatabase from './removeDatabase'
 export default () => {
+  removeDatabase()
   create({ config: config.database })
   return server(config)
     .then(({ host, port, stop }) => {

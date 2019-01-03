@@ -1,4 +1,4 @@
-const innerFetch = require('node-fetch')
+import innerFetch from 'node-fetch'
 
 const fetch = ({ endpoint, body, headers = {} , method }) => (
     innerFetch(
@@ -8,7 +8,7 @@ const fetch = ({ endpoint, body, headers = {} , method }) => (
           {
             method
           },
-          { 
+          {
             headers: Object.assign(
               {
                 "Content-type":'application/json'
@@ -23,17 +23,11 @@ const fetch = ({ endpoint, body, headers = {} , method }) => (
     .catch((error) => {
       throw error
     }))
-  
-    const get = (endpoint, headers) => (
-        fetch({ endpoint, headers, method: 'GET'})
-      )
 
-    const post = (endpoint, body, headers) => (
-        fetch({ endpoint, headers, body, method: 'POST'})
-      )
+export const get = (endpoint, headers) => (
+  fetch({ endpoint, headers, method: 'GET'})
+)
 
-
-module.exports = {
-    post,
-    get
-}
+export const post = (endpoint, body, headers) => (
+  fetch({ endpoint, headers, body, method: 'POST'})
+)

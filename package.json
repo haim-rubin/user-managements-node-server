@@ -4,7 +4,8 @@
   "description": "starter for express node server with user managements, authentication authorization",
   "main": "index.js",
   "scripts": {
-    "test": "mocha ./test/**/*.js",
+    "dev": "nodemon --inspect -r esm ./test",
+    "test": "mocha -r esm ./test/**/*.js",
     "start": "node index",
     "mon": "nodemon index",
     "dbcreate": "node ./scripts/force-database-create"
@@ -47,6 +48,7 @@
   },
   "devDependencies": {
     "mocha": "^5.2.0",
+    "shelljs": "^0.8.3",
     "sqlite3": "^4.0.4"
   }
 }
