@@ -1,4 +1,5 @@
 import assert from 'assert'
+import expect from 'expect.js'
 import { get, post } from '../utils/fetch'
 import httpStatus from 'http-status'
 const baseUrl = 'http://localhost:5000/user'
@@ -11,9 +12,10 @@ const credentials = {
 describe('Sign-in', () =>  {
   describe(`sign in with invalid password`, () => {
     it(`should return ${httpStatus[httpStatus.UNAUTHORIZED]}`, function(done) {
+      this.timeout(10000)
       post(`${baseUrl}/sign-in`, credentials )
         .then(({ message }) => {
-          assert.equal(httpStatus[httpStatus.UNAUTHORIZED], message)
+          expect(message).to.equal(httpStatus[httpStatus.UNAUTHORIZED])
           done()
         })
     })
@@ -21,9 +23,10 @@ describe('Sign-in', () =>  {
 
   describe(`sign in with invalid username`, () => {
     it(`should return ${httpStatus[httpStatus.UNAUTHORIZED]}`, function(done) {
+      this.timeout(10000)
       post(`${baseUrl}/sign-in`, credentials )
         .then(({ message }) => {
-          assert.equal(httpStatus[httpStatus.UNAUTHORIZED], message)
+          expect(message).to.equal(httpStatus[httpStatus.UNAUTHORIZED])
           done()
         })
     })
