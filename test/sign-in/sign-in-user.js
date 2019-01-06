@@ -1,35 +1,30 @@
-import assert from 'assert'
-import expect from 'expect.js'
-import { get, post } from '../utils/fetch'
 import httpStatus from 'http-status'
-const baseUrl = 'http://localhost:5000/user'
-
-const credentials = {
-  username: 'haim.rubin1@gmail.com',
-  password: '00000'
-}
+import { validatePostResponse } from '../utils/validateMessageStatus'
+import { credentials, signInUrl } from '../data'
 
 describe('Sign-in', () =>  {
   describe(`sign in with invalid password`, () => {
-    it(`should return ${httpStatus[httpStatus.UNAUTHORIZED]}`, function(done) {
-      this.timeout(10000)
-      post(`${baseUrl}/sign-in`, credentials )
-        .then(({ message }) => {
-          expect(message).to.equal(httpStatus[httpStatus.UNAUTHORIZED])
-          done()
-        })
-    })
+    it(`should return ${httpStatus[httpStatus.UNAUTHORIZED]}`,
+      validatePostResponse(
+          signInUrl,
+          credentials,
+          httpStatus.UNAUTHORIZED, {
+            message: httpStatus[httpStatus.UNAUTHORIZED]
+          }
+      )
+    )
   })
 
   describe(`sign in with invalid username`, () => {
-    it(`should return ${httpStatus[httpStatus.UNAUTHORIZED]}`, function(done) {
-      this.timeout(10000)
-      post(`${baseUrl}/sign-in`, credentials )
-        .then(({ message }) => {
-          expect(message).to.equal(httpStatus[httpStatus.UNAUTHORIZED])
-          done()
-        })
-    })
+    it(`should return ${httpStatus[httpStatus.UNAUTHORIZED]}`,
+      validatePostResponse(
+        signInUrl,
+        credentials,
+        httpStatus.UNAUTHORIZED, {
+          message: httpStatus[httpStatus.UNAUTHORIZED]
+        }
+      )
+    )
   })
 
 

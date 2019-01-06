@@ -127,7 +127,7 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
                 .info(`${logPrefix} ${VERBAL_CODE.USER_CREATED_EMAIL_VERIFICATION_SENT}`)
 
               return {
-                code: httpStatus.CREATED,
+                httpStatusCode: httpStatus.CREATED,
                 message: httpStatus[httpStatus.CREATED]
               }
             })

@@ -19,7 +19,11 @@ const fetch = ({ endpoint, body, headers = {} , method }) => (
           method === 'POST'? { body: JSON.stringify(body) } : {}
       )
     )
-    .then((response) => response.json())
+    .then(async response => ({
+        json: await response.json(),
+        status: response.status
+      }
+    ))
     .catch((error) => {
       throw error
     }))
