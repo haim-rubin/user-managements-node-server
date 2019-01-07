@@ -11,16 +11,19 @@ import initUsersComponents from './controllers/users'
 import initTemplateManagements from './services/template-managements'
 import { compile } from './services/template-render'
 import path from 'path'
+import initEntities from './entities'
 
 const initUserImplementations = ({
   config,
   logger,
-  _3rdPartyProviders
+  _3rdPartyProviders,
+  dal
 }) => ({
   ...initUsersComponents({
     config,
     logger,
-    _3rdPartyProviders
+    _3rdPartyProviders,
+    dal
   }),
   ...initAuthntication({ logger, config })
 })
@@ -61,17 +64,18 @@ const server = (appConfig) => (
           compile
         })
 
-      initUserApis(
-        {
-          ...initUserImplementations({
-            config,
-            logger,
-            _3rdPartyProviders
-          }),
-          getVerifyResponseHTML: error =>
-            getVerifyResponseHTML({ error, link: config.loginUrl, appName: config.appName })
-        }
-      )(userRoute)
+      initUserApis({
+
+        ...initUserImplementations({
+          config,
+          logger,
+          _3rdPartyProviders,
+          dal: initEntities({ config: config.database, logger })
+        }),
+        getVerifyResponseHTML: error =>
+          getVerifyResponseHTML({ error, link: config.loginUrl, appName: config.appName })
+
+      })(userRoute)
 
       app.use(config.userRoute, /* validateInput, writeAudit ,*/ userRoute)
 
