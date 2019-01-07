@@ -1,5 +1,5 @@
 import './polyfills'
-import configOption from './configOption'
+import configOption from './configOption.json'
 import express from 'express'
 import bodyParser from 'body-parser'
 import isAuthenticate from './utils/isAuthenticate'
@@ -8,6 +8,8 @@ import initUserApis from './routes/users'
 import init3rdPartyProviders from './services/verify-third-party-token'
 import initAuthntication from './controllers/authentication'
 import initUsersComponents from './controllers/users'
+import initTemplateManagements from './services/template-managements'
+import { compile } from './services/template-render'
 import path from 'path'
 
 const initUserImplementations = ({
@@ -53,12 +55,22 @@ const server = (appConfig) => (
       const userRoute = express.Router({ mergeParams: true })
       const _3rdPartyProviders = init3rdPartyProviders({ config })
 
-      initUserApis(
-        initUserImplementations({
-          config,
-          logger,
-          _3rdPartyProviders
+
+      const { getVerifyResponseHTML } = initTemplateManagements({
+          ...config,
+          compile
         })
+
+      initUserApis(
+        {
+          ...initUserImplementations({
+            config,
+            logger,
+            _3rdPartyProviders
+          }),
+          getVerifyResponseHTML: error =>
+            getVerifyResponseHTML({ error, link: config.loginUrl, appName: config.appName })
+        }
       )(userRoute)
 
       app.use(config.userRoute, /* validateInput, writeAudit ,*/ userRoute)

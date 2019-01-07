@@ -24,7 +24,7 @@
     "pass": "umn@2019",
     "from": "users.managements@gmail.com"
   },
-  "verificationUrl": "http://localhost:5000/api/user/verify/",
+  "verificationUrl": "http://localhost:5000/user/verify/",
   "changePasswordUrl": "http://localhost:3000/change-password/",
   "loginUrl": "http://localhost:3000",
   "tokenHash": "dev-token-key",

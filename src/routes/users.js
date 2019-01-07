@@ -1,7 +1,7 @@
 import HttpError from "../utils/HttpError";
 import httpStatus from 'http-status'
 import {responseOk, responseError, isAuthenticated } from './routeHelper'
-
+import path from 'path'
 const init = ({
   signUp,
   signIn,
@@ -10,7 +10,8 @@ const init = ({
   changePassword,
   verify,
   getUserInfo,
-  validateAuthenticated
+  validateAuthenticated,
+  getVerifyResponseHTML
 }) => (userRoute) => {
 
   userRoute
@@ -64,7 +65,21 @@ const init = ({
 
   userRoute
     .route('/verify/:actionId')
-    .get(verify)
+    .get((req, res) => {
+      const { actionId } = req.params
+      verify({ actionId })
+        .then(() => {
+          res
+            .end(
+              getVerifyResponseHTML(false)
+            )
+        })
+        .catch(error => {
+          res
+            .status(error.httpStatusCode)
+            .end(getVerifyResponseHTML(true))
+        })
+    })
 
   userRoute
     .route('/info')

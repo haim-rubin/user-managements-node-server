@@ -1,6 +1,6 @@
 import httpStatus from 'http-status'
-import { validatePostResponse } from '../utils/validateMessageStatus'
-import { credentials, signUpUrl } from '../data'
+import { validatePostResponse, validateGetResponse } from '../utils/validateMessageStatus'
+import { credentials, signUpUrl, verifyUrl } from '../data'
 
 describe('Sign-up user', () =>  {
   describe('Verify create user', () => {
@@ -23,6 +23,15 @@ describe('Sign-up user', () =>  {
         httpStatus.CONFLICT, {
           message: httpStatus[httpStatus.CONFLICT]
         }
+      )
+    )
+  })
+
+  describe('Verify user by activation link', () => {
+    it(`should return ${httpStatus[httpStatus.OK]}`,
+      validateGetResponse(
+        verifyUrl,
+        httpStatus.OK
       )
     )
   })

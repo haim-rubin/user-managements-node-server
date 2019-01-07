@@ -7,7 +7,6 @@ import initEntities from '../entities'
 import { isValidActionId, isValidUsernameAndPassword } from '../utils/validator'
 import { last, first } from 'lodash'
 import { getToken }  from '../utils/tokenizer'
-import initTemplateManagements from '../services/template-managements'
 import HttpError from '../utils/HttpError'
 import initControllerUtil from './controllersUtils'
 import { extract } from '../utils/SequelizeHelper'
@@ -18,11 +17,8 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
 
   const {  Users, ActionVerifications } = initEntities({ config: config.database, logger })
   const conn = initConn({ config: config.database })
-  const { getVerifyResponseHTML } = initTemplateManagements({
-    ...config,
-    compile
-  })
-  const { onCatchLog } = initControllerUtil({ logger })
+
+
   const getPasswordEncrypt = (clearPassword) => (
     bcrypt.hashSync(clearPassword)
   )
@@ -45,12 +41,6 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
       throw new HttpError(httpStatusCode)
     }
     return response
-  }
-
-  const handleCustomErrorResponse = (res, error) => {
-    res
-      .status(httpStatus[error.message] ? error.message : httpStatus.INTERNAL_SERVER_ERROR)
-      .json({ message: httpStatus[error.message] ? httpStatus[error.message] : httpStatus[httpStatus.INTERNAL_SERVER_ERROR] })
   }
 
   const setActionVerification = ({ username, actionType }, { returning }) => (
@@ -146,34 +136,27 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
     )
   }
 
-  const verify = (req, res) => {
-    const { actionId } = req.params
-    const logPrefix = `Action (${actionId}) - verify ->`
+  const verify = ({ actionId }) => {
 
     logger
-      .info(`${logPrefix} request to verify.`)
+      .info(`Verify user by action (${actionId})`)
 
-    isValidActionId({ actionId })
+    return (
+      isValidActionId({ actionId })
       .then(() => conn.transaction())
       .then(transaction => {
         return ActionVerifications
           .findOne({ where: { actionId, actionType: ACTION_VERIFICATIONS.ACTIVATE_USER } })
           .then((response) => {
             if (!response) {
-              logger
-                .error(`${logPrefix} action verification doesn't exist`)
-
-              throw new HttpError(`Action verification doesn't exist`, httpStatus.BAD_REQUEST)
+              throw new HttpError(httpStatus.FORBIDDEN, VERBAL_CODE.ACTION_VERIFICATION_DOES_NOT_EXIST)
             }
             return response
           })
           .then(extract)
           .then((actionVerification) => {
             if (actionVerification.deleted) {
-              logger
-                .error(`${logPrefix} action verification expired`)
-
-              throw new HttpError(`Action verification doesn't exist`, httpStatus.BAD_REQUEST)
+              throw new HttpError(httpStatus.FORBIDDEN, VERBAL_CODE.ACTION_VERIFICATION_OBSOLETE)
             }
             return actionVerification
           })
@@ -181,7 +164,13 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
             ActionVerifications
               .update({ deleted: true }, { where: { actionId }, returning: true })
               .then((actionVerificationUpdated) => {
-                return first(last(actionVerificationUpdated))
+                return last(actionVerificationUpdated)
+              })
+              .then(effected => {
+                if(!effected){
+                  throw new HttpError(httpStatus.INTERNAL_SERVER_ERROR, VERBAL_CODE.DELETE_ACTION_VERIFICATION_FAILED)
+                }
+                return ActionVerifications.findOne({ where: { actionId }})
               })
               .then(extract)
               .then(({ username }) => ({
@@ -196,10 +185,7 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
           .findOne({ where: { username, isValid: false } })
           .then(user => {
             if (!user) {
-              logger
-                .error(`User not exist.`)
-
-              throw new HttpError(`User not exist.`, httpStatus.BAD_REQUEST)
+              throw new HttpError(httpStatus.FORBIDDEN, VERBAL_CODE.USER_DOES_NOT_EXIST)
             }
             return user
           })
@@ -221,30 +207,29 @@ const init = ({ config, logger, _3rdPartyProviders }) =>{
           }))
       ))
       .then(({ effected, transaction, username }) => {
-        transaction.commit()
+        transaction
+          .commit()
 
-        logger
-          .info(`User (${username}) - verify -> user activated.`)
+        const logMessage =
+          config.verifyUserByAdmin
+          ? VERBAL_CODE.USER_VERIFIED_BY_ACTIVATION_LINK
+          : VERBAL_CODE.USER_VERIFIED_BY_ACTIVATION_LINK_ADMIN
+
+        logger.info(logMessage)
+        logger.info(`User (${username}) activated.`)
 
         sendApprovedActivationEmail({ username })
 
-        const { appName, loginUrl } = config
-        res
-          .end(
-            getVerifyResponseHTML({ appName, link: loginUrl, error: false })
-          )
-
+        return {
+          httpStatusCode: httpStatus.OK
+        }
       })
-      .catch((error) => {
-        onCatchLog(error)
-        const { appName, loginUrl } = config
-
-        res
-          .status(error.code)
-          .end(
-            getVerifyResponseHTML({ appName, link: loginUrl, error: true })
-          )
+      .catch(error => {
+        const { code } = error
+        logger.error(code || error)
+        throw error
       })
+    )
   }
 
   const isThirdpartySupprted = (thirdParty) => (
