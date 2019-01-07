@@ -1,7 +1,7 @@
 import HttpError from "../utils/HttpError";
-import { getDefaultErrorIfNotSupplied } from '../utils/errorHelper'
-import { getClientIp, getUserAgentObject } from '../utils/user-agent'
 import httpStatus from 'http-status'
+import {responseOk, responseError, isAuthenticated } from './routeHelper'
+
 const init = ({
   signUp,
   signIn,
@@ -10,56 +10,8 @@ const init = ({
   changePassword,
   verify,
   getUserInfo,
-  isAuthenticated,
   validateAuthenticated
 }) => (userRoute) => {
-
-  const response = ({ res, httpStatusCode, data }) => {
-    res
-      .status(httpStatusCode)
-      .json(data || { message: httpStatus[httpStatusCode] })
-  }
-
-  const responseOk = res => ({ httpStatusCode = httpStatus.OK, ...data }) => {
-    response({ res, httpStatusCode, data })
-  }
-
-  const responseError = (res, defaultHttpStatusCode) => error => {
-    response({
-      res,
-      ...getDefaultErrorIfNotSupplied(error, defaultHttpStatusCode)
-    })
-  }
-
-  const setRequestWithUserInfo = ({ req, username, id }) => {
-    Object
-        .assign(
-            req,
-            { userInfo: {
-                id,
-                username
-                }
-            },
-            {
-                clientInfo: {
-                    ip: getClientIp(req),
-                    userAgen: getUserAgentObject(req)
-                    }
-            }
-        )
-
-    return { id }
-}
-
-  const isAuthenticated = (role) => (
-    (req, res, next) => (
-        validateAuthenticated(req.headers.token, role)
-          .then(({ id, username }) => setRequestWithUserInfo({ username, id, req }))
-          .then(() => {
-              next()
-          })
-    )
-  )
 
   userRoute
     .route('/sign-up')
@@ -124,7 +76,7 @@ const init = ({
             .json(userInfo)
 
         })
-        .catch(getDefaultErrorIfNotSupplied(res, httpStatus.BAD_REQUEST))
+        .catch(responseError(res, httpStatus.BAD_REQUEST))
     })
 
   userRoute
