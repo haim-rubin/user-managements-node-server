@@ -3,19 +3,17 @@ import httpStatus from 'http-status'
 import sequelize from 'sequelize'
 import bcrypt from 'bcrypt-nodejs'
 import { THIRDPARTY, ACTION_VERIFICATIONS, VERBAL_CODE } from '../consts'
-import initEntities from '../entities'
 import { isValidActionId, isValidUsernameAndPassword } from '../utils/validator'
 import { last, first } from 'lodash'
 import { getToken }  from '../utils/tokenizer'
 import HttpError from '../utils/HttpError'
-import initControllerUtil from './controllersUtils'
 import { extract } from '../utils/SequelizeHelper'
 import initEmailManagements from '../services/emails-managements'
 import { compile } from '../services/template-render'
-const init = ({ config, logger, _3rdPartyProviders }) =>{
+const init = ({ config, logger, _3rdPartyProviders, dal }) =>{
   const EmailService = {} //from '../services/email-service'
 
-  const {  Users, ActionVerifications } = initEntities({ config: config.database, logger })
+  const {  Users, ActionVerifications } = dal
   const conn = initConn({ config: config.database })
 
 
