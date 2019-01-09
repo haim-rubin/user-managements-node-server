@@ -1,9 +1,10 @@
 import httpStatus from 'http-status'
 import { validatePostResponse, validateGetResponseStatus } from '../utils/validateMessageStatus'
-import { credentials, signUpUrl, verifyUrl, signInUrl } from '../data'
+import { credentials, signUpUrl, verifyUrl, signInUrl, signOutUrl } from '../data'
 import config from '../setup/app.dev.config.json'
 import initEntities from '../../src/entities'
 import { extract } from '../../src/utils/SequelizeHelper'
+import { post } from '../utils/fetch'
 const logger = {
   log: () => {},
   info: () => {},
@@ -70,6 +71,17 @@ describe('Sign-up user', () =>  {
         signInUrl,
         credentials,
         httpStatus.OK
+      )
+    )
+  })
+
+
+  describe('Verify logout fail when logout without token', () => {
+    xit(`should return ${httpStatus[httpStatus.FORBIDDEN]}`, 
+      validatePostResponse(
+        signInUrl,
+        null,
+        httpStatus.FORBIDDEN
       )
     )
   })

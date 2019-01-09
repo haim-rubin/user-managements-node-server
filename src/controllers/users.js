@@ -2,7 +2,11 @@ import initConn from '../entities/conn'
 import httpStatus from 'http-status'
 import sequelize from 'sequelize'
 import bcrypt from 'bcrypt-nodejs'
-import { THIRDPARTY, ACTION_VERIFICATIONS, VERBAL_CODE } from '../consts'
+import {
+  THIRDPARTY,
+  ACTION_VERIFICATIONS,
+  VERBAL_CODE,
+  POLICY_CODE_MAPPER } from '../consts'
 import { isValidActionId, isValidUsernameAndPassword } from '../utils/validator'
 import { last, first } from 'lodash'
 import { getToken }  from '../utils/tokenizer'
@@ -20,7 +24,7 @@ const init = ({ config, logger, _3rdPartyProviders, dal }) =>{
   const getPasswordEncrypt = (clearPassword) => (
     bcrypt.hashSync(clearPassword)
   )
-  const{
+  const {
     sendActivationEmail,
     sendResetPasswordEmail,
     sendApprovedActivationEmail,
@@ -67,72 +71,57 @@ const init = ({ config, logger, _3rdPartyProviders, dal }) =>{
     { returning: true })
   )
 
-  const POLICY_CODE_MAPPER = {
-    [`${true}-${true}`]: VERBAL_CODE.INVALID_USERNAME_PASSWORD_POLICY,
-    [`${true}-${false}`]: VERBAL_CODE.INVALID_USERNAME_POLICY,
-    [`${false}-${true}`]: VERBAL_CODE.INVALID_PASSWORD_POLICY
-  }
 
-  const signUp = ({ username, password }) => {
 
-    const logPrefix = `User (${username}) - signUp:`
-
-    logger
-      .info(`${logPrefix} requested.`)
-
-    return (
-      isValidUsernameAndPassword({ username, password })
-        .catch(validation => {
-          logger.log(validation)
+  const signUp = ({ username, password }) => (
+    isValidUsernameAndPassword({ username, password })
+      .catch(validation => {
+        logger.log(validation)
           const {
             isValidPassword,
             isValidUsername
           } = validation
           const code = POLICY_CODE_MAPPER[`${isValidUsername}-${isValidPassword}`]
           throw new HttpError(httpStatus.BAD_REQUEST, code)
-        })
-        .then(() => ({
-          username,
-          isValid: false,
-          password: getPasswordEncrypt(password)
-        }))
-        .then((user) => (
-          Users
-            .create(user)
-            .then(getActivationActionVerification)
-            .then((info) => (
-              sendActivationEmail(info)
-                .catch(error =>{
-                  const { code } = error
-                  if('EAUTH' === code){
-                    throw VERBAL_CODE.INVALID_EMAIL_CREDENTIALS_CHECK_EMAIL_SECTION_IN_CONFIG
-                  }
-                  throw error
-                })
-            ))
-            .then(() => {
-              logger
-                .info(`${logPrefix} ${VERBAL_CODE.USER_CREATED_EMAIL_VERIFICATION_SENT}`)
-
-              return {
-                httpStatusCode: httpStatus.CREATED,
-                message: httpStatus[httpStatus.CREATED]
-              }
-            })
-            .catch(
-              sequelize.UniqueConstraintError,
-              error => {
-                logger.error(error)
-                throw new HttpError(httpStatus.CONFLICT, VERBAL_CODE.USERNAME_ALREADY_EXIST)
-              }
-            )
-        ))
-        .catch((error) => {
-          logger.error(error)
-          throw error
-        })
+      })
+      .then(() => ({
+        username,
+        isValid: false,
+        password: getPasswordEncrypt(password)
+      }))
+      .then((user) => (
+        Users.create(user)
+          .catch(
+            sequelize.UniqueConstraintError,
+            error => {
+              logger.error(error)
+              throw new HttpError(httpStatus.CONFLICT, VERBAL_CODE.USERNAME_ALREADY_EXIST)
+          })
+      ))
+      .then(getActivationActionVerification)
+      .then((info) => (
+        sendActivationEmail(info)
+          .catch(error => {
+            const { code } = error
+            if('EAUTH' === code){
+              throw VERBAL_CODE.INVALID_EMAIL_CREDENTIALS_CHECK_EMAIL_SECTION_IN_CONFIG
+            }
+            throw error
+          })
+      ))
+      .then(() => {
+        logger
+          .info(`${VERBAL_CODE.USER_CREATED_EMAIL_VERIFICATION_SENT}`)
+        return {
+          httpStatusCode: httpStatus.CREATED,
+          message: httpStatus[httpStatus.CREATED]
+        }
+      })
+      .catch((error) => {
+        logger.error(error)
+        throw error
+      })
     )
-  }
 
   const verify = ({ actionId }) => {
 
@@ -390,20 +379,18 @@ const init = ({ config, logger, _3rdPartyProviders, dal }) =>{
     )
   }
 
-  const getUserInfo = ({ username, id }) => {
-    logger
-      .info(`User info requested for (${username}).`)
-
-    return Users.findOne({ where: { id } })
+  const getUserInfo = ({ id }) => (
+    Users.findOne({ where: { id } })
       .then(extract)
       .then(({ username, createdAt, updatedAt, profilePhoto }) => (
         { username, createdAt, updatedAt, profilePhoto }
       ))
       .catch(error => {
-        logger.log(error)
+        logger
+          .log(error)
         throw error
       })
-  }
+  )
 
   const generateUserToken = (user) => {
     logger
@@ -564,33 +551,26 @@ const init = ({ config, logger, _3rdPartyProviders, dal }) =>{
         )
   )
 
-  const signOut = (req, res) => {
-
-    logger.info(`signOut: user(${req.userInfo.username})`)
+  const signOut = ({ username, id }) => (
     Users
-      .update({ token: null }, { where: { id: req.userInfo.id }, returning: true })
+      .update({ token: null }, { where: { id: id }, returning: true })
       .then((response) => {
         if (!response) {
-          logger.error(`signOut: user(${req.userInfo.username}) update db faild`)
-          throw new Error(httpStatus.INTERNAL_SERVER_ERROR)
+          throw `Update user (${username}) in db failed`
         }
         return response
       })
-      .then((response) => first(last(response)))
-      .then(({ dataValues }) => dataValues)
-      .then(() => {
-        logger.info(`signOut: user(${req.userInfo.username}) succeeded`)
-        res
-          .status(httpStatus.OK)
-          .json({ message: 'USER_SUCCEEDED_TO_LOGOUT' })
+      .then(() => ({
+        httpStatusCode: httpStatus.OK
+      }))
+      .catch(error => {
+        logger.error(error)
+        throw new HttpError(
+          httpStatus.INTERNAL_SERVER_ERROR,
+          httpStatus[httpStatus.INTERNAL_SERVER_ERROR]
+        )
       })
-      .catch((error) => {
-        logger.error(`signOut: user(${req.userInfo.username}) succeeded`)
-        res
-          .status(httpStatus.BAD_REQUEST)
-          .json(error)
-      })
-  }
+  )
 
 
   return {

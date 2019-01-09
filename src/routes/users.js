@@ -32,9 +32,15 @@ const init = ({
         .catch(responseError(res))
     })
 
-  userRoute
+    userRoute
     .route('/sign-out')
-    .post(isAuthenticated(), signOut)
+    .post(isAuthenticated(), (req, res) => {
+      const { userInfo } = req
+      signOut(userInfo)
+        .then(response => {
+          res.json(response)
+        })
+    })
 
   userRoute
     .route('/forgot-password')

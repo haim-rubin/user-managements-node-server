@@ -14,7 +14,6 @@ const jwtVerify = (token, secretOrPublicKey) => (
 
 const init = ({ logger, config }) => {
     const isUserInRoleDB = (role) => Promise.resolve(true)
-    const { onCatchUnAuthorize } = initControllerUtil({ logger })
     const { Users } = initEntities({ config: config.database })
     const isUserInRole = ({ username, role }) => (
     //TODO: check if user is in role duo to database, if it does so return username if not return null
@@ -49,8 +48,6 @@ const init = ({ logger, config }) => {
             ))
     )
 
-    
-
     const validateAuthenticated = (token, role) => (
         innerIsAuthenticated({ token })
             .then(info => (
@@ -60,7 +57,7 @@ const init = ({ logger, config }) => {
             ))
             .then(user => {
                 if(!user.id){
-                    throw 'User not exist'
+                    throw `User doesn't not exist`
                 }
                 return user
             })
@@ -72,12 +69,34 @@ const init = ({ logger, config }) => {
 
     //.then(({ id, username }) => setRequestWithUserInfo({ username, id, req }))
 
+
+    const setRequestWithUserInfo = ({ req, username, id }) => {
+        Object
+            .assign(
+                req,
+                { userInfo: {
+                    id,
+                    username
+                    }
+                },
+                {
+                    clientInfo: {
+                        ip: getClientIp(req),
+                        userAgen: getUserAgentObject(req)
+                        }
+                }
+            )
+
+        return { id }
+    }
+
     const isAuthenticated = (role) => (
         (req, res, next) => (
             validateAuthenticated(req.headers.token, role)
-            .then(() => {
-                next()
-            })
+                .then(({ id, username }) => setRequestWithUserInfo({ username, id, req }))
+                .then(() => {
+                    next()
+                })
         )
     )
 

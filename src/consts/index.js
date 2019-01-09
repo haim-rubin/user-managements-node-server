@@ -33,3 +33,9 @@ export const VERBAL_CODE = keyMirror({
     ACTION_VERIFICATION_OBSOLETE: null,
     DELETE_ACTION_VERIFICATION_FAILED: null
 })
+
+export const POLICY_CODE_MAPPER = {
+    [`${true}-${true}`]: VERBAL_CODE.INVALID_USERNAME_PASSWORD_POLICY,
+    [`${true}-${false}`]: VERBAL_CODE.INVALID_USERNAME_POLICY,
+    [`${false}-${true}`]: VERBAL_CODE.INVALID_PASSWORD_POLICY
+  }

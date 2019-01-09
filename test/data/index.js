@@ -9,4 +9,5 @@ export const baseUrl = `http://localhost:${config.port}/user`
 export const signInUrl = `${baseUrl}/sign-in`
 export const signUpUrl = `${baseUrl}/sign-up`
 export const verifyUrl = `${baseUrl}/verify`
+export const signOutUrl = `${baseUrl}/sign-out`
 
