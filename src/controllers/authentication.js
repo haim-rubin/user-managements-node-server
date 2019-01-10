@@ -2,7 +2,6 @@ import  initEntities from '../entities'
 import httpStatus  from 'http-status'
 import jwt from 'jsonwebtoken'
 import HttpError from "../utils/HttpError";
-import initControllerUtil from './controllersUtils'
 import { extract } from '../utils/SequelizeHelper'
 const jwtVerify = (token, secretOrPublicKey) => (
     new Promise((resolve, reject) => {
@@ -48,8 +47,15 @@ const init = ({ logger, config }) => {
             ))
     )
 
+    const throwIfTokenNotSupplied = token => (
+        !!token
+        ? Promise.resolve({token})
+        : Promise.reject({token})
+    )
+
     const validateAuthenticated = (token, role) => (
-        innerIsAuthenticated({ token })
+        throwIfTokenNotSupplied(token)
+            .then(innerIsAuthenticated)
             .then(info => (
                 role
                 ? isUserInRole(role).then(() => info)
@@ -67,37 +73,12 @@ const init = ({ logger, config }) => {
             })
     )
 
-    //.then(({ id, username }) => setRequestWithUserInfo({ username, id, req }))
-
-
-    const setRequestWithUserInfo = ({ req, username, id }) => {
-        Object
-            .assign(
-                req,
-                { userInfo: {
-                    id,
-                    username
-                    }
-                },
-                {
-                    clientInfo: {
-                        ip: getClientIp(req),
-                        userAgen: getUserAgentObject(req)
-                        }
-                }
-            )
-
-        return { id }
-    }
-
-    const isAuthenticated = (role) => (
-        (req, res, next) => (
-            validateAuthenticated(req.headers.token, role)
-                .then(({ id, username }) => setRequestWithUserInfo({ username, id, req }))
-                .then(() => {
-                    next()
-                })
-        )
+    const isAuthenticated = ({ token, role }) => (
+        validateAuthenticated(token, role)
+            .then(({ id, username }) => ({
+                username,
+                id
+            }))
     )
 
     return {

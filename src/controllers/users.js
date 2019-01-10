@@ -566,8 +566,8 @@ const init = ({ config, logger, _3rdPartyProviders, dal }) =>{
       .catch(error => {
         logger.error(error)
         throw new HttpError(
-          httpStatus.INTERNAL_SERVER_ERROR,
-          httpStatus[httpStatus.INTERNAL_SERVER_ERROR]
+          httpStatus.UNAUTHORIZED,
+          httpStatus[httpStatus.UNAUTHORIZED]
         )
       })
   )

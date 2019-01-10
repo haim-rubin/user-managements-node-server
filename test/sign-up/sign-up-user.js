@@ -77,11 +77,11 @@ describe('Sign-up user', () =>  {
 
 
   describe('Verify logout fail when logout without token', () => {
-    xit(`should return ${httpStatus[httpStatus.FORBIDDEN]}`, 
+    it(`should return ${httpStatus[httpStatus.UNAUTHORIZED]}`,
       validatePostResponse(
-        signInUrl,
-        null,
-        httpStatus.FORBIDDEN
+        signOutUrl,
+        {},
+        httpStatus.UNAUTHORIZED
       )
     )
   })

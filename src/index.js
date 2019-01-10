@@ -6,7 +6,7 @@ import isAuthenticate from './utils/isAuthenticate'
 import loggerInit from './utils/logger/init'
 import initUserApis from './routes/users'
 import init3rdPartyProviders from './services/verify-third-party-token'
-import initAuthntication from './controllers/authentication'
+import initAuthentication from './controllers/authentication'
 import initUsersComponents from './controllers/users'
 import initTemplateManagements from './services/template-managements'
 import { compile } from './services/template-render'
@@ -25,7 +25,7 @@ const initUserImplementations = ({
     _3rdPartyProviders,
     dal
   }),
-  ...initAuthntication({ logger, config })
+  ...initAuthentication({ logger, config })
 })
 
 const getAbsoluteTemplates = (templates, dirname) => (

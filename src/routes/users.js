@@ -1,6 +1,6 @@
 import HttpError from "../utils/HttpError";
 import httpStatus from 'http-status'
-import {responseOk, responseError, isAuthenticated } from './routeHelper'
+import initRouteHelper from './routeHelper'
 import path from 'path'
 const init = ({
   signUp,
@@ -11,8 +11,16 @@ const init = ({
   verify,
   getUserInfo,
   validateAuthenticated,
-  getVerifyResponseHTML
+  getVerifyResponseHTML,
+  isAuthenticated
 }) => (userRoute) => {
+
+  const {
+    unauthorizedIfNotAuthenticated,
+    responseError,
+    getClientInfo,
+    responseOk
+  } = initRouteHelper({ isAuthenticated })
 
   userRoute
     .route('/sign-up')
@@ -32,14 +40,18 @@ const init = ({
         .catch(responseError(res))
     })
 
-    userRoute
+  userRoute
     .route('/sign-out')
-    .post(isAuthenticated(), (req, res) => {
+    .post(unauthorizedIfNotAuthenticated(), (req, res) => {
       const { userInfo } = req
       signOut(userInfo)
         .then(response => {
           res.json(response)
         })
+        .catch(err =>{
+          return err
+        })
+        .catch(responseError(res))
     })
 
   userRoute
@@ -89,7 +101,7 @@ const init = ({
 
   userRoute
     .route('/info')
-    .get(isAuthenticated(), (req, res) => {
+    .get(unauthorizedIfNotAuthenticated(), (req, res) => {
       getUserInfo(req.userInfo)
         .then(userInfo => {
 
@@ -102,7 +114,7 @@ const init = ({
 
   userRoute
     .route('/contact-us')
-    .post(isAuthenticated(), (req, res) => {
+    .post(unauthorizedIfNotAuthenticated(), (req, res) => {
       const { subject, description } = req.body
         .sendContactUs({username: req.username, subject, description })
         .then((info) => {
