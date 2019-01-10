@@ -5,6 +5,7 @@ import config from '../setup/app.dev.config.json'
 import initEntities from '../../src/entities'
 import { extract } from '../../src/utils/SequelizeHelper'
 import { post } from '../utils/fetch'
+import expect from 'expect.js'
 const logger = {
   log: () => {},
   info: () => {},
@@ -75,7 +76,6 @@ describe('Sign-up user', () =>  {
     )
   })
 
-
   describe('Verify logout fail when logout without token', () => {
     it(`should return ${httpStatus[httpStatus.UNAUTHORIZED]}`,
       validatePostResponse(
@@ -84,6 +84,19 @@ describe('Sign-up user', () =>  {
         httpStatus.UNAUTHORIZED
       )
     )
+  })
+
+  describe('Verify logout succeded when logout with valid token', () => {
+    it(`should return ${httpStatus[httpStatus.OK]}`, (done) =>{
+      post(signInUrl, credentials)
+        .then(({ json }) => (
+          post(signOutUrl,{}, json)
+        ))
+        .then(({ status }) => {
+          expect(status).to.equal(httpStatus.OK)
+          done()
+       })
+    })
   })
 
   describe('Verify activation link obsolete', () => {

@@ -37,7 +37,7 @@ const init = ({
       const { username, password, thirdParty } = req.body
       signIn({ username, password, thirdParty })
         .then(responseOk(res))
-        .catch(responseError(res))
+        .catch(responseError(res, httpStatus.UNAUTHORIZED))
     })
 
   userRoute
@@ -45,9 +45,7 @@ const init = ({
     .post(unauthorizedIfNotAuthenticated(), (req, res) => {
       const { userInfo } = req
       signOut(userInfo)
-        .then(response => {
-          res.json(response)
-        })
+        .then(responseOk(res))
         .catch(err =>{
           return err
         })

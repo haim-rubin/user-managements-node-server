@@ -25,6 +25,8 @@ const init = ({ isAuthenticated }) => {
         (req, res, next) => (
             isAuthenticated({ token: req.headers.token, role })
                 .then((userInfo) => {
+                    Object
+                        .assign(req, { userInfo })
                     next()
                 })
                 .catch(responseError(res,httpStatus.UNAUTHORIZED))
