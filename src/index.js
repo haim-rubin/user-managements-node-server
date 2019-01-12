@@ -63,7 +63,21 @@ const server = (appConfig) => (
           ...config,
           compile
         })
+      const getFriendlyLogObject = obj => (
+        Object
+          .entries(obj)
+          .map(([key, value]) =>(
+            `${key}: ${value}`
+          ))
+          .join(',')
+      )
 
+      const getFriendlyLogObjectIfHasKeys = (obj, key) => (
+        Object
+          .keys(obj).length
+        ? `${key}: { ${getFriendlyLogObject(obj) } }`
+        : ''
+      )
       initUserApis({
 
         ...initUserImplementations({
@@ -72,9 +86,29 @@ const server = (appConfig) => (
           _3rdPartyProviders,
           dal: initEntities({ config: config.database, logger })
         }),
-        getVerifyResponseHTML: error =>
+        getVerifyResponseHTML: error => (
           getVerifyResponseHTML({ error, link: config.loginUrl, appName: config.appName })
+        ),
+        //:Object {username: "haim.rubin@gmail.com", password: "123456"}
+        auditLogger: ({
+          body,
+          clientInfo: { ip, userAgent },
+          originalUrl,
+          params,
+          query }) => {
 
+          const friendlyObjInfo = [
+            getFriendlyLogObjectIfHasKeys(body, 'body'),
+            getFriendlyLogObjectIfHasKeys(params, 'params'),
+            getFriendlyLogObjectIfHasKeys(query, 'query')
+          ]
+          .filter(x => x)
+          .join(', ')
+
+          logger.info(
+            `${originalUrl}: { ip: ${ip}, ${ friendlyObjInfo} }`
+          )
+        }
       })(userRoute)
 
       app.use(config.userRoute, /* validateInput, writeAudit ,*/ userRoute)

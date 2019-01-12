@@ -2,7 +2,7 @@ import { getClientIp, getUserAgentObject } from '../utils/user-agent'
 import httpStatus from 'http-status'
 import { getDefaultErrorIfNotSupplied } from '../utils/errorHelper'
 
-const init = ({ isAuthenticated }) => {
+const init = ({ isAuthenticated, logger }) => {
 
     const response = ({ res, httpStatusCode, data }) => {
         res
@@ -40,11 +40,30 @@ const init = ({ isAuthenticated }) => {
         }
     })
 
+    const logHttpRequest = log => (
+        (req, res, next) => {
+            const { clientInfo } = getClientInfo(req)
+            const { userInfo } = req
+            const { body, params, query, method } = req
+
+            log({
+                originalUrl: req.originalUrl,
+                method,
+                clientInfo,
+                ...(userInfo? { userInfo } : {}),
+                ...{ body, params, query }
+            })
+
+            next()
+        }
+    )
+
     return{
         unauthorizedIfNotAuthenticated,
         responseError,
         getClientInfo,
-        responseOk
+        responseOk,
+        logHttpRequest
     }
 }
 export default init

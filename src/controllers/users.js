@@ -297,9 +297,6 @@ const init = ({ config, logger, _3rdPartyProviders, dal }) =>{
   }
 
   const signIn = ({ username, password, thirdParty }) => {
-    logger
-      .info(`User (${username}) - signIn -> signIn requested.`)
-
     return isValidUsernameAndPassword({ username, password })
       .then(() => (
         config.loginWithThirdParty && thirdParty ?
@@ -310,10 +307,7 @@ const init = ({ config, logger, _3rdPartyProviders, dal }) =>{
   }
 
   const loginVia3rdParty = ({ username, token, thirdParty }) => {
-    logger
-      .info(`User (${username}) - login via ${thirdParty} -> requested.`)
-
-    return (
+   return (
       _3rdPartyProviders[thirdParty].verify({ token })
       )
   }
