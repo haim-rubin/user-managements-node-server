@@ -39,3 +39,7 @@ export const POLICY_CODE_MAPPER = {
     [`${true}-${false}`]: VERBAL_CODE.INVALID_USERNAME_POLICY,
     [`${false}-${true}`]: VERBAL_CODE.INVALID_PASSWORD_POLICY
   }
+
+export const EVENTS = keyMirror({
+    USER_CREATED: null
+})

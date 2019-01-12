@@ -6,7 +6,8 @@ import {
   THIRDPARTY,
   ACTION_VERIFICATIONS,
   VERBAL_CODE,
-  POLICY_CODE_MAPPER } from '../consts'
+  POLICY_CODE_MAPPER,
+  EVENTS } from '../consts'
 import { isValidActionId, isValidUsernameAndPassword } from '../utils/validator'
 import { last, first } from 'lodash'
 import { getToken }  from '../utils/tokenizer'
@@ -14,7 +15,7 @@ import HttpError from '../utils/HttpError'
 import { extract } from '../utils/SequelizeHelper'
 import initEmailManagements from '../services/emails-managements'
 import { compile } from '../services/template-render'
-const init = ({ config, logger, _3rdPartyProviders, dal }) =>{
+const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
   const EmailService = {} //from '../services/email-service'
 
   const {  Users, ActionVerifications } = dal
@@ -45,27 +46,27 @@ const init = ({ config, logger, _3rdPartyProviders, dal }) =>{
     return response
   }
 
-  const setActionVerification = ({ username, actionType }, { returning }) => (
+  const setActionVerification = ({ user, actionType }, { returning }) => (
     ActionVerifications
-      .findOne({ where: { username, actionType, deleted: false } })
+      .findOne({ where: { username: user.username, actionType, deleted: false } })
       .then((exist) => (
-        exist? exist: ActionVerifications.create({ username, actionType }, { returning })
+        exist? exist: ActionVerifications.create({ username: user.username, actionType }, { returning })
       ))
-      .then(({ dataValues }) => dataValues)
-      .then(({ actionId }) => Object.assign({}, { username }, { actionId }))
+      .then(extract)
+      .then(({ actionId }) => ({ ...user, actionId }))
   )
 
-  const getActivationActionVerification = ({ username }) => (
+  const getActivationActionVerification = user => (
     setActionVerification({
-      username,
+      user,
       actionType: ACTION_VERIFICATIONS.ACTIVATE_USER
     },
     { returning: true })
   )
 
-  const getForgotPasswordActionVerification = ({ username }) => (
+  const getForgotPasswordActionVerification = user => (
     setActionVerification({
-      username,
+      user,
       actionType: ACTION_VERIFICATIONS.FORGORT_PASSWORD
     },
     { returning: true })
@@ -91,6 +92,7 @@ const init = ({ config, logger, _3rdPartyProviders, dal }) =>{
       }))
       .then((user) => (
         Users.create(user)
+          .then(extract)
           .catch(
             sequelize.UniqueConstraintError,
             error => {
@@ -98,16 +100,18 @@ const init = ({ config, logger, _3rdPartyProviders, dal }) =>{
               throw new HttpError(httpStatus.CONFLICT, VERBAL_CODE.USERNAME_ALREADY_EXIST)
           })
       ))
+      .then(({ password, ...user }) => user)
       .then(getActivationActionVerification)
       .then((info) => (
-        sendActivationEmail(info)
-          .catch(error => {
-            const { code } = error
-            if('EAUTH' === code){
-              throw VERBAL_CODE.INVALID_EMAIL_CREDENTIALS_CHECK_EMAIL_SECTION_IN_CONFIG
-            }
-            throw error
-          })
+        emit(EVENTS.USER_CREATED, info)
+        // sendActivationEmail(info)
+        //   .catch(error => {
+        //     const { code } = error
+        //     if('EAUTH' === code){
+        //       throw VERBAL_CODE.INVALID_EMAIL_CREDENTIALS_CHECK_EMAIL_SECTION_IN_CONFIG
+        //     }
+        //     throw error
+        //   })
       ))
       .then(() => {
         logger

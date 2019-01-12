@@ -5,7 +5,7 @@ import removeDatabase from './removeDatabase'
 export default () => {
   removeDatabase()
   create({ config: config.database })
-  return server(config)
+  return server({ appConfig: config })
     .then(({ host, port, stop }) => {
       console.log(`Server run on: ${host}${port? ':' + port: ''}`)
       return { host, port, stop }
