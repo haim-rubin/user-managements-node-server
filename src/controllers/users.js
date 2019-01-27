@@ -13,8 +13,6 @@ import { last, first } from 'lodash'
 import { getToken }  from '../utils/tokenizer'
 import HttpError from '../utils/HttpError'
 import { extract } from '../utils/SequelizeHelper'
-import initEmailManagements from '../services/emails-managements'
-import { compile } from '../services/template-render'
 const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
   const EmailService = {} //from '../services/email-service'
 
@@ -25,16 +23,6 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
   const getPasswordEncrypt = (clearPassword) => (
     bcrypt.hashSync(clearPassword)
   )
-  const {
-    sendActivationEmail,
-    sendResetPasswordEmail,
-    sendApprovedActivationEmail,
-    sendNotificationToAdminWhenUserCreated } = initEmailManagements({
-      config: {
-        ...config,
-        compile
-      }
-    })
 
   const throwIfInvalid = (error, httpStatusCode) => response => {
     if (!response) {
@@ -72,8 +60,6 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
     { returning: true })
   )
 
-
-
   const signUp = ({ username, password }) => (
     isValidUsernameAndPassword({ username, password })
       .catch(validation => {
@@ -104,14 +90,6 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
       .then(getActivationActionVerification)
       .then((info) => (
         emit(EVENTS.USER_CREATED, info)
-        // sendActivationEmail(info)
-        //   .catch(error => {
-        //     const { code } = error
-        //     if('EAUTH' === code){
-        //       throw VERBAL_CODE.INVALID_EMAIL_CREDENTIALS_CHECK_EMAIL_SECTION_IN_CONFIG
-        //     }
-        //     throw error
-        //   })
       ))
       .then(() => {
         logger
@@ -208,8 +186,8 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
 
         logger.info(logMessage)
         logger.info(`User (${username}) activated.`)
-
-        sendApprovedActivationEmail({ username })
+        emit(EVENTS.USER_APPROVED, { username, admin: config.adminEmail })
+       // sendApprovedActivationEmail({ username })
 
         return {
           httpStatusCode: httpStatus.OK
@@ -363,7 +341,7 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
             createUser({ username, password, fullName, [thirdPartyProp[thirdParty]]: password, profilePhoto, isValid: true })
               .then((user) => {
                 const { username, fullName } = user
-                sendNotificationToAdminWhenUserCreated({ username, admin: config.adminEmail, fullName })
+               // sendNotificationToAdminWhenUserCreated({ username, admin: config.adminEmail, fullName })
                 return user
               })
             )
@@ -442,7 +420,7 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
           return user
         })
         .then(getForgotPasswordActionVerification)
-        .then(sendResetPasswordEmail)
+       // .then(sendResetPasswordEmail)
         .then(() => {
 
           logger

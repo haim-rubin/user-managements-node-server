@@ -1,1 +1,1 @@
-import './Array.js'
+import './Array'

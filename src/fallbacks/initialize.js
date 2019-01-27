@@ -1,15 +1,19 @@
 import loggerInit from '../utils/logger/init'
 import init3rdPartyProviders from './verifyThirdpartyToken'
 import initEntities from '../entities'
-import initTemplateManagements from '../services/template-managements'
-import { compile } from '../services/template-render'
 import configOption from '../configOption.json'
 import initAuthentication from '../controllers/authentication'
 import initUsersComponents from '../controllers/users'
 import path from 'path'
 import EventEmmiter from 'events'
 import defaultAuditLogger from './auditLogger'
-
+import { mergeTemplates } from './utils'
+import manageActivationEmails from './manageActivationEmails'
+import initVerify from '../utils/getVerifyResponseHTML'
+import { compile } from '../fallbacks/compileTemplate'
+const getVerifyResponseHTML = initVerify({
+    compile
+})
 const getAbsoluteTemplates = (templates, dirname) => (
     Object
       .entries(templates)
@@ -19,18 +23,26 @@ const getAbsoluteTemplates = (templates, dirname) => (
       .arrayPropToObject()
   )
 
+
+
 const init = ({ appConfig, externals, relDirname }) => {
     const config = {
         ...configOption,
         ...appConfig,
-        templates: appConfig.templates
-        ? appConfig.templates
-        : getAbsoluteTemplates(configOption.templates, relDirname)
+        templates:
+            mergeTemplates({ templates: appConfig.templates, defaultTemplates: configOption.templates })
     }
 
     const events = new EventEmmiter()
     const emit = events.emit.bind(events)
     const on = events.on.bind(events)
+
+    const emailErrors =
+        manageActivationEmails({
+            on,
+            config,
+            relDirname
+        })
 
     const logger =
         externals.logger
@@ -43,11 +55,6 @@ const init = ({ appConfig, externals, relDirname }) => {
     const dal =
         externals.dal
         || initEntities({ config: config.database, logger })
-
-    const { getVerifyResponseHTML } = initTemplateManagements({
-        ...config,
-        compile
-    })
 
     const auditLogger =
         externals.auditLogger

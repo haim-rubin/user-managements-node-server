@@ -7,3 +7,8 @@ Array.prototype.arrayPropToObject = function(initialObject = {}){
             }), initialObject)
     )
 }
+
+Array.prototype.flat = function(initialArray = []){
+    return this.reduce((acc, item) => acc.concat(item), initialArray)
+}
+

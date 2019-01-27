@@ -37,7 +37,7 @@
       "APP_ID": "<Facebook App ID>",
       "APP_SECRET": "<Facebook App Secret>",
       "VERSION": "v2.9"
-    }, 
+    },
     "google": {
       "clientId": "<Google Client ID>",
       "clientSecret": "<Google Client Secret>",
@@ -45,13 +45,19 @@
     },
     "loginWithThirdParty": true,
     "templates": {
-      "activationBody" : "./email-templates/activation/body.html",
-      "activationSubject" : "./email-templates/activation/subject.html",
-      "activationResponse" : "./email-templates/activation/response.html",
-      "activationBodyApproved" : "./email-templates/approved-activation/body.html",
-      "activationSubjectApproved" : "./email-templates/approved-activation/subject.html",
-      "notifyBodyAdminWhenUserCreated" : "./email-templates/notify-admin-when-user-created/body.html",
-      "notifySubjectAdminWhenUserCreated" : "./email-templates/notify-admin-when-user-created/subject.html"
+      "activation":{
+        "activationBody" : "./email-templates/activation/body.html",
+        "subject" : "./email-templates/activation/subject.html"
+      },
+      "approved":{
+        "body" : "./email-templates/approved-activation/body.html",
+        "subject" : "./email-templates/approved-activation/subject.html"
+      },
+      "notify":{
+        "body" : "./email-templates/notify-admin-when-user-created/body.html",
+        "subject" : "./email-templates/notify-admin-when-user-created/subject.html"
+      },
+      "activationResponse" : "./email-templates/activation/response.html"
     },
     "userRoute": "/user"
   }

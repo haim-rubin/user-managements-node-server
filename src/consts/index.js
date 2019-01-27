@@ -41,5 +41,7 @@ export const POLICY_CODE_MAPPER = {
   }
 
 export const EVENTS = keyMirror({
-    USER_CREATED: null
+    USER_CREATED: null,
+    NOTIFY_ADMIN_WHEN_USER_APPROVED: null,
+    USER_APPROVED: null
 })

@@ -33,5 +33,21 @@
   "log4js": {
     "appenders": { "app": { "type": "file", "filename": "./config/app-name.log" } },
     "categories": { "default": { "appenders": ["app"], "level": "all" } }
+  },
+  "templates": {
+    "activation":{
+      "body" : "./email-templates/activation/body.html",
+      "subject" : "./email-templates/activation/subject.html"
+    },
+    "approved":{
+      "body" : "./email-templates/approved-activation/body.html",
+      "subject" : "./email-templates/approved-activation/subject.html"
+    },
+    "notify":{
+      "body" : "./email-templates/notify-admin-when-user-created/body.html",
+      "subject" : "./email-templates/notify-admin-when-user-created/subject.html"
+    },
+    "activationResponse" : "./email-templates/activation/response.html"
+
   }
 }

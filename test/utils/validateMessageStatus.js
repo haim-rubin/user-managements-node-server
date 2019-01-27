@@ -1,14 +1,20 @@
 import httpStatus from 'http-status'
 import expect from 'expect.js'
 import { post, get, getHtml } from './fetch'
+import { reject } from 'when';
 
 const compareResponse = (httpStatusCode, response) => ({ json, status }) => (
-  new Promise(resolve => {
-    expect(httpStatusCode).to.equal(status)
-    if(response){
-      expect(json).to.eql(response)
+  new Promise((resolve, reject) => {
+    try{
+      expect(httpStatusCode).to.equal(status)
+      if(response){
+        expect(json).to.eql(response)
+      }
+      resolve()
     }
-    resolve()
+    catch(error){
+      reject(error)
+    }
   })
 )
 
@@ -27,6 +33,7 @@ export const validateGetResponse = (url, httpStatusCode, response) => function(d
 }
 
 export const validateGetResponseStatus = (url, httpStatusCode) => function(done){
+console.log(url)
   getHtml(url)
     .then(({ status }) => {
       expect(httpStatusCode).to.equal(status)

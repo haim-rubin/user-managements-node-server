@@ -1,21 +1,21 @@
-import initEmail from './email-provider'
+import initEmail from '../utils/emailProvider'
 import initTemplateManagement from './template-managements'
-    
+
 const init = ({ config }) => {
     const {
         getActivationEmailParams,
         getApprovedActivationEmailParams,
         getNotifyAdminWhenUserCreatedParams } = initTemplateManagement(config)
-        
+
     const { send } = initEmail({ config: config.email })
-    
+
     const sendActivationEmail = ({ actionId, username }) => {
         const email =
             config.verifyUserByAdmin? config.adminEmail : username
 
         const { body: html, subject } =
-            getActivationEmailParams({ username, actionId })      
-            
+            getActivationEmailParams({ username, actionId })
+
         return send({from: config.email.from, to: email, subject, html })
     }
 
@@ -23,8 +23,8 @@ const init = ({ config }) => {
     const sendApprovedActivationEmail = ({ username }) => {
 
         const { body: html, subject } =
-            getApprovedActivationEmailParams({ username })      
-            
+            getApprovedActivationEmailParams({ username })
+
         return send({from: config.email.from, to: username, subject, html })
     }
 

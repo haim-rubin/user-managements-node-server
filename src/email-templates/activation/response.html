@@ -15,7 +15,7 @@
                 box-sizing: border-box;
                 padding: 15px 15px 15px 58px;
                 border-radius: 2px;
-                color: #fff;    
+                color: #fff;
                 box-shadow: 0 0 12px #999;
                 cursor: pointer;
                 line-height: 1.2em;
@@ -32,14 +32,14 @@
         </style>
     </head>
     <body>
-        <div class='message {{=it.error? 'error': ''}}' >
+        <div class="message {{=it.error? 'error': ''}}" >
             <span class='caption'>
                 {{? it.error }}
                 <span>Invalid verification key.</span>
                 {{?? !it.error}}
                 <span>Verification succeeded. Please click <a href='{{=it.link}}'>here</a> to login.</span>
                 {{? }}
-            </span> 
+            </span>
         </div>
     </body>
     </head>
