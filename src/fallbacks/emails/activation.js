@@ -1,5 +1,5 @@
 import { compile } from '../compileTemplate'
-import path from 'path'
+import getAbsolutePath from '../../utils/getAbsolutePath'
 
 const addActivationEmailListener = ({
     body,
@@ -13,11 +13,16 @@ const addActivationEmailListener = ({
     on
 }) => {
 
+
     const bodyTemplate =
-        compile(path.resolve(relDirname,body))
+        compile(
+            getAbsolutePath(body, relDirname)
+        )
 
     const subjectTemplate =
-        compile(path.resolve(relDirname,subject))
+        compile(
+            getAbsolutePath(subject, relDirname)
+        )
 
     const getBody = ({ actionId, username }) => (
         bodyTemplate({

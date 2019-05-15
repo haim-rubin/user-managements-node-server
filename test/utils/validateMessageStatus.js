@@ -2,7 +2,7 @@ import httpStatus from 'http-status'
 import expect from 'expect.js'
 import { post, get, getHtml } from './fetch'
 import { reject } from 'when';
-
+import assert from 'assert'
 const compareResponse = (httpStatusCode, response) => ({ json, status }) => (
   new Promise((resolve, reject) => {
     try{
@@ -34,8 +34,11 @@ export const validateGetResponse = (url, httpStatusCode, response) => function(d
 
 export const validateGetResponseStatus = (url, httpStatusCode) => function(done){
 console.log(url)
+
   getHtml(url)
     .then(({ status }) => {
+      console.log('Haim - > ', status)
+      assert.equal('haim',status)
       expect(httpStatusCode).to.equal(status)
       done()
     })
