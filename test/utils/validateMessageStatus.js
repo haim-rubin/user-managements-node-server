@@ -1,8 +1,5 @@
-import httpStatus from 'http-status'
 import expect from 'expect.js'
 import { post, get, getHtml } from './fetch'
-import { reject } from 'when';
-import assert from 'assert'
 const compareResponse = (httpStatusCode, response) => ({ json, status }) => (
   new Promise((resolve, reject) => {
     try{
