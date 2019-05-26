@@ -1,4 +1,4 @@
-const init = ({ compile }) => (
+const init = ({ compile, activationResponse }) => (
   ({ appName, error, link }) => (
       compile(activationResponse)({
           appName,

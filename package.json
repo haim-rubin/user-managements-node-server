@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon --inspect -r esm ./test",
-    "test": "mocha -r esm ./test/**/*.js",
+    "test": "mocha -r esm --timeout=10000 ./test/**/*.js",
     "start": "node index",
     "mon": "nodemon index",
     "dbcreate": "node ./scripts/force-database-create"

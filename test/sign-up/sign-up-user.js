@@ -53,11 +53,11 @@ describe('Sign-up user', () =>  {
   describe('Verify user by activation link', () => {
     it(`should return ${httpStatus[httpStatus.OK]}`, (done) =>{
       const context = this
-      this.timeout(10000)
       ActionVerifications
         .findOne({ where: { username: credentials.username }})
         .then(extract)
         .then(({ actionId }) => {
+
           return validateGetResponseStatus(
             `${verifyUrl}/${actionId}`,
             httpStatus.OK

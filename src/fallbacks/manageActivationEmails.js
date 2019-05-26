@@ -54,7 +54,6 @@ const manageActivationEmails = ({ on, config, relDirname }) => {
     }
 
     const {
-        activationResponse,
         activation,
         approved,
         notify

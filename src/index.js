@@ -19,10 +19,6 @@ const server = ({ appConfig, ...externals}) => (
         on
       } = initFallBacks({ appConfig, externals, relDirname: __dirname })
 
-      on(EVENTS.USER_CREATED, info =>{
-        console.log('iiiiinfo',info)
-      })
-
       const app = express()
       app.use(bodyParser.urlencoded({ extended: true }));
       app.use(bodyParser.json())

@@ -20,9 +20,13 @@ const compareResponse = (httpStatusCode, response) => ({ json, status }) => (
 
 export const validatePostResponse = (url, params, httpStatusCode, response) => function(done) {
     this.timeout(10000)
+    console.log(global.on)
     post(url, params )
       .then(compareResponse(httpStatusCode, response))
       .then(() => done())
+      .catch(error => {
+        console.error(error)
+      })
 }
 
 export const validateGetResponse = (url, httpStatusCode, response) => function(done) {
@@ -33,12 +37,8 @@ export const validateGetResponse = (url, httpStatusCode, response) => function(d
 }
 
 export const validateGetResponseStatus = (url, httpStatusCode) => function(done){
-console.log(url)
-
   getHtml(url)
     .then(({ status }) => {
-      console.log('Haim - > ', status)
-      assert.equal('haim',status)
       expect(httpStatusCode).to.equal(status)
       done()
     })

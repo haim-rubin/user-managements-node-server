@@ -6,9 +6,10 @@ export default () => {
   removeDatabase()
   create({ config: config.database })
   return server({ appConfig: config })
-    .then(({ host, port, stop }) => {
+    .then(({ host, port, stop, on }) => {
       console.log(`Server run on: ${host}${port? ':' + port: ''}`)
-      return { host, port, stop }
+      //process.g
+      return { host, port, stop, on }
     })
     .catch(error => {
       console.log(error)

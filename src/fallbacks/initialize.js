@@ -11,9 +11,7 @@ import { mergeTemplates } from './utils'
 import manageActivationEmails from './manageActivationEmails'
 import initVerify from '../utils/getVerifyResponseHTML'
 import { compile } from '../fallbacks/compileTemplate'
-const getVerifyResponseHTML = initVerify({
-    compile
-})
+
 const getAbsoluteTemplates = (templates, dirname) => (
     Object
       .entries(templates)
@@ -23,6 +21,14 @@ const getAbsoluteTemplates = (templates, dirname) => (
       .arrayPropToObject()
   )
 
+const getTemplatePath = (filePath) => {
+    return (
+        path
+            .isAbsolute(filePath)
+        ? filePath
+        : path.join(__dirname, '../', filePath)
+    )
+}
 
 
 const init = ({ appConfig, externals, relDirname }) => {
@@ -32,6 +38,11 @@ const init = ({ appConfig, externals, relDirname }) => {
         templates:
             mergeTemplates({ templates: appConfig.templates, defaultTemplates: configOption.templates })
     }
+
+    const getVerifyResponseHTML = initVerify({
+        compile,
+        activationResponse: getTemplatePath(config.templates.activationResponse)
+    })
 
     const events = new EventEmmiter()
     const emit = events.emit.bind(events)
