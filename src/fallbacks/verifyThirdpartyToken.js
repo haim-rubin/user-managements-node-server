@@ -1,9 +1,9 @@
 import fetch from 'node-fetch'
-import GoogleAuth from 'google-auth-library'
+import { GoogleAuth } from 'google-auth-library'
 const fields = 'name,email,picture'
 
 const init3rdPartyProviders = ({ config }) =>({
-  
+
   facebook: {
     verify: ({ token }) => (
       fetch(`https://graph.facebook.com/me?fields=${fields}&access_token=${token}`)
