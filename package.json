@@ -30,10 +30,10 @@
   "homepage": "https://github.com/haim-rubin/user-managements-node-server#readme",
   "dependencies": {
     "bcrypt-nodejs": "^0.0.3",
-    "body-parser": "^1.17.2",
+    "body-parser": "^1.19.0",
     "dot": "^1.1.2",
     "esm": "^3.0.84",
-    "express": "^4.15.4",
+    "express": "^4.17.1",
     "google-auth-library": "^0.10.0",
     "http-status": "^1.0.1",
     "jsonwebtoken": "^7.4.2",
@@ -41,7 +41,7 @@
     "log4js": "^2.4.1",
     "node-fetch": "^1.7.2",
     "nodemailer": "^4.0.1",
-    "pg": "^7.1.0",
+    "pg": "^7.11.0",
     "sequelize": "^4.4.3",
     "useragent": "^2.2.1",
     "uuid": "^3.3.2"
