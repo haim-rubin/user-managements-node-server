@@ -17,7 +17,6 @@ const compareResponse = (httpStatusCode, response) => ({ json, status }) => (
 
 export const validatePostResponse = (url, params, httpStatusCode, response) => function(done) {
     this.timeout(10000)
-    console.log(global.on)
     post(url, params )
       .then(compareResponse(httpStatusCode, response))
       .then(() => done())

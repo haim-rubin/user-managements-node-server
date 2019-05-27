@@ -1,17 +1,23 @@
 import initEntities from '../src/entities/entities-base'
 
-const create = ({ config }) => {
-  const entities = initEntities({ config })
-  return Object
-    .keys(entities)
-    .map((key) => {
-      return entities[key]
-        .sync({ force: config.force })
-        .then(() => (
-          console.log(`table ${key} created.`)
-        ))
-        .catch((err) => console.log(err))
-    })
-}
+const create = ({ config }) => (
+  new Promise((resolve, reject) => {
+    const entities = initEntities({ config })
+    return (
+      Promise
+        .all(
+          Object
+            .keys(entities)
+            .map((key) => (
+              entities[key]
+                .sync({ force: config.force })
+                .then(() => `table ${key} created.`)
+            ))
+        )
+        .then(resolve)
+        .catch(reject)
+    )
+  })
+)
 
 export default create

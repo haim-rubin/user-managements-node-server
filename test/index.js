@@ -1,2 +1,2 @@
 import init from './setup'
-init()
+//init()
