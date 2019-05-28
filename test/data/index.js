@@ -6,8 +6,8 @@ export const credentials = {
 }
 
 export const baseUrl = `http://localhost:${config.port}/user`
-export const signInUrl = `${baseUrl}/sign-in`
-export const signUpUrl = `${baseUrl}/sign-up`
-export const verifyUrl = `${baseUrl}/verify`
-export const signOutUrl = `${baseUrl}/sign-out`
+export const signInRoute = `/sign-in`
+export const signUpRoute = `/sign-up`
+export const verifyRoute = `/verify`
+export const signOutRoute = `/sign-out`
 

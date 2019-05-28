@@ -1,17 +1,14 @@
 import httpStatus from 'http-status'
-import { validatePostResponse, validateGetResponseStatus } from '../utils/validateMessageStatus'
-import { credentials, baseUrl, signUpUrl, verifyUrl, signInUrl, signOutUrl } from '../data'
+import { credentials, baseUrl, signUpRoute, verifyRoute, signInRoute, signOutRoute } from '../data'
 import config from '../setup/app.dev.config.json'
 import initEntities from '../../src/entities'
 import { extract } from '../../src/utils/SequelizeHelper'
-import { post } from '../utils/fetch'
-import expect from 'expect.js'
 import createServer from '../setup'
 import create from '../../scripts/create-database'
 import removeDatabase from '../setup/removeDatabase'
 import chai from 'chai'
 import chaiHttp from 'chai-http'
-
+const TOKEN_KEY = 'token'
 const logger = {
   log: () => {},
   info: () => {},
@@ -28,17 +25,16 @@ describe('Sign-up user', () =>  {
       .then(() => done())
   })
 
-
   chai.use(chaiHttp)
   const { expect } = chai
   const request =
     chai.request(baseUrl)
 
   describe('Verify create user', () => {
-    it(`should return ${httpStatus[httpStatus.CREATED]}`,
+    it(`Should return ${httpStatus[httpStatus.CREATED]}`,
       done => {
         request
-          .post('/sign-up')
+          .post(signUpRoute)
           .send(credentials)
           .end((err, res) => {
             expect(res).to.have.status(httpStatus.CREATED)
@@ -57,7 +53,7 @@ describe('Sign-up user', () =>  {
 
     done => {
       request
-        .post('/sign-up')
+        .post(signUpRoute)
         .send(credentials)
         .end((err, res) => {
           expect(res).to.have.status(httpStatus.CONFLICT)
@@ -74,7 +70,7 @@ describe('Sign-up user', () =>  {
     it(`should return ${httpStatus[httpStatus.UNAUTHORIZED]}`,
       done => {
         request
-          .post('/sign-in')
+          .post(signInRoute)
           .send(credentials)
           .end((err, res) => {
             expect(res).to.have.status(httpStatus.UNAUTHORIZED)
@@ -94,12 +90,10 @@ describe('Sign-up user', () =>  {
         .findOne({ where: { username: credentials.username }})
         .then(extract)
         .then(({ actionId }) => {
-          console.log(ac)
           request
-            .post(`/verify/${actionId}`)
+            .get(`${verifyRoute}/${actionId}`)
             .send(credentials)
             .end((err, res) => {
-              console.log(res)
               expect(res).to.have.status(httpStatus.OK)
 
               done()
@@ -112,7 +106,7 @@ describe('Sign-up user', () =>  {
     it(`should return ${httpStatus[httpStatus.UNAUTHORIZED]}`,
     done => {
       request
-        .post('/sign-in')
+        .post(signInRoute)
         .send({ ...credentials, password: 'no-' + credentials.password })
         .end((err, res) => {
           expect(res).to.have.status(httpStatus.UNAUTHORIZED)
@@ -129,7 +123,7 @@ describe('Sign-up user', () =>  {
     it(`should return ${httpStatus[httpStatus.UNAUTHORIZED]}`,
       done => {
         request
-          .post('/sign-in')
+          .post(signInRoute)
           .send({ ...credentials, password: 'no-' + credentials.username })
           .end((err, res) => {
             expect(res).to.have.status(httpStatus.UNAUTHORIZED)
@@ -147,7 +141,7 @@ describe('Sign-up user', () =>  {
     it(`should return ${httpStatus[httpStatus.OK]}`,
       done => {
         request
-          .post('/sign-in')
+          .post(signInRoute)
           .send(credentials)
           .end((err, res) => {
             expect(res).to.have.status(httpStatus.OK)
@@ -162,7 +156,7 @@ describe('Sign-up user', () =>  {
     it(`should return ${httpStatus[httpStatus.UNAUTHORIZED]}`,
       done => {
         request
-          .post('/sign-out')
+          .post(signOutRoute)
           .send(credentials)
           .end((err, res) => {
             expect(res).to.have.status(httpStatus.UNAUTHORIZED)
@@ -177,18 +171,17 @@ describe('Sign-up user', () =>  {
     it(`should return ${httpStatus[httpStatus.OK]}`,
       done => {
         request
-          .post('/sign-in')
+          .post(signInRoute)
           .send(credentials)
           .end((err, res) => {
             expect(res).to.have.status(httpStatus.OK)
 
-            const response =
+            const { [TOKEN_KEY]: token } =
               JSON.parse(res.text)
-            const key = Object.keys(response)[0]
-console.  log(key)
+
             request
-              .post('/sign-out')
-              .set(key, response[key])
+              .post(signOutRoute)
+              .set(TOKEN_KEY, token)
               .send(credentials)
               .end((err, res) => {
                 expect(res).to.have.status(httpStatus.OK)
@@ -201,17 +194,19 @@ console.  log(key)
   })
 
   describe('Verify activation link obsolete', () => {
-    it(`should return ${httpStatus[httpStatus.FORBIDDEN]}`, (done) =>{
-      const context = this
-
+    it(`should return ${httpStatus[httpStatus.FORBIDDEN]}`, (done) => {
       ActionVerifications
         .findOne({ where: { username: credentials.username }})
         .then(extract)
         .then(({ actionId }) => {
-          return validateGetResponseStatus(
-            `${verifyUrl}/${actionId}`,
-            httpStatus.FORBIDDEN
-          ).bind(context)(done)
+          request
+          .get(`${verifyRoute}/${actionId}`)
+          .send(credentials)
+          .end((err, res) => {
+            expect(res).to.have.status(httpStatus.FORBIDDEN)
+
+            done()
+          })
         })
     })
   })
