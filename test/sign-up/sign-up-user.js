@@ -6,6 +6,7 @@ import { extract } from '../../src/utils/SequelizeHelper'
 import createServer from '../setup'
 import create from '../../scripts/create-database'
 import removeDatabase from '../setup/removeDatabase'
+import { EVENTS } from '../../src/consts'
 import chai from 'chai'
 import chaiHttp from 'chai-http'
 const TOKEN_KEY = 'token'
@@ -16,12 +17,14 @@ const logger = {
 }
 const { Users, ActionVerifications } = initEntities({ config: config.database, logger })
 
-describe('Sign-up user', () =>  {
+describe('Sign up/in verify user', () =>  {
 
+  let server
   before(done => {
     removeDatabase()
     create({ config: config.database })
       .then(createServer)
+      .then(res => server = res)
       .then(() => done())
   })
 
@@ -33,6 +36,12 @@ describe('Sign-up user', () =>  {
   describe('Verify create user', () => {
     it(`Should return ${httpStatus[httpStatus.CREATED]}`,
       done => {
+        server.on(EVENTS.USER_CREATED, ({ username, isValid }) => {
+          expect(username)
+            .to.equal(credentials.username)
+
+          done()
+        })
         request
           .post(signUpRoute)
           .send(credentials)
@@ -41,8 +50,6 @@ describe('Sign-up user', () =>  {
             expect(JSON.parse(res.text).message)
               .to
               .equal(httpStatus[ httpStatus.CREATED ])
-
-              done()
           })
       }
     )
@@ -83,7 +90,14 @@ describe('Sign-up user', () =>  {
       }
     )
   })
+/*
+EVENTS = keyMirror({
+    USER_CREATED: null,
+    NOTIFY_ADMIN_WHEN_USER_APPROVED: null,
+    USER_APPROVED: null
+})
 
+*/
   describe('Verify user by activation link', () => {
     it(`should return ${httpStatus[httpStatus.OK]}`, done => {
       ActionVerifications

@@ -7,7 +7,8 @@ import {
   ACTION_VERIFICATIONS,
   VERBAL_CODE,
   POLICY_CODE_MAPPER,
-  EVENTS } from '../consts'
+  EVENTS,
+  VERIFY_USER_BY } from '../consts'
 import { isValidActionId, isValidUsernameAndPassword } from '../utils/validator'
 import { last, first } from 'lodash'
 import { getToken }  from '../utils/tokenizer'
@@ -15,6 +16,17 @@ import HttpError from '../utils/HttpError'
 import { extract } from '../utils/SequelizeHelper'
 const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
   const EmailService = {} //from '../services/email-service'
+
+  const emailVerificationTo = {
+    [VERIFY_USER_BY.ADMIN_EMAIL_LINK]: VERBAL_CODE.USER_CREATED_EMAIL_VERIFICATION_SENT_TO_ADMIN,
+    [VERIFY_USER_BY.EMAIL_LINK]: VERBAL_CODE.USER_CREATED_EMAIL_VERIFICATION_SENT_TO_USER,
+    [VERIFY_USER_BY.AUTO]: VERBAL_CODE.USER_CREATE_AND_AUTO_VERIFY
+  }
+  const isAutoValid =
+    config.verifyUserBy === VERIFY_USER_BY.AUTO
+
+  const is3rdPartyAutoValid =
+    config.verify3rdPartyUserBy === VERIFY_USER_BY.AUTO
 
   const {  Users, ActionVerifications } = dal
   const conn = initConn({ config: config.database })
@@ -73,7 +85,7 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
       })
       .then(() => ({
         username,
-        isValid: false,
+        isValid: isAutoValid,
         password: getPasswordEncrypt(password)
       }))
       .then((user) => (
@@ -87,13 +99,21 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
           })
       ))
       .then(({ password, ...user }) => user)
-      .then(getActivationActionVerification)
+      .then(user => {
+        if(isAutoValid){
+          return user
+        }
+
+        return(
+          getActivationActionVerification(user)
+        )
+      })
       .then((info) => (
         emit(EVENTS.USER_CREATED, info)
       ))
       .then(() => {
         logger
-          .info(`${VERBAL_CODE.USER_CREATED_EMAIL_VERIFICATION_SENT}`)
+          .info(`User verify by: ${emailVerificationTo[config.verifyUserBy]}`)
         return {
           httpStatusCode: httpStatus.CREATED,
           message: httpStatus[httpStatus.CREATED]
@@ -180,7 +200,7 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
           .commit()
 
         const logMessage =
-          config.verifyUserByAdmin
+          config.verifyUserBy
           ? VERBAL_CODE.USER_VERIFIED_BY_ACTIVATION_LINK
           : VERBAL_CODE.USER_VERIFIED_BY_ACTIVATION_LINK_ADMIN
 
@@ -285,6 +305,13 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
           signInViaThirdparty({ thirdParty, username, password }) :
           signInUser({ username, password })
       ))
+      .then(user => {
+        if(!user.isValid){
+          logger.error(`User ${user.username} is not valid.`)
+          throw new HttpError(httpStatus.UNAUTHORIZED)
+        }
+        return user
+      })
       .then(user => generateUserToken(user))
   }
 
@@ -338,7 +365,7 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
               profilePhoto
             }, { username }) :
 
-            createUser({ username, password, fullName, [thirdPartyProp[thirdParty]]: password, profilePhoto, isValid: true })
+            createUser({ username, password, fullName, [thirdPartyProp[thirdParty]]: password, profilePhoto, isValid: is3rdPartyAutoValid })
               .then((user) => {
                 const { username, fullName } = user
                // sendNotificationToAdminWhenUserCreated({ username, admin: config.adminEmail, fullName })

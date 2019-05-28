@@ -6,7 +6,7 @@
 * This repository has the following APIs
 
 	1. sign-up:
-		* Sending activation link to to (user email that sign up / or to admin if verifyUserByAdmin set to true)
+		* Sending activation link to to (user email that sign up / or to admin if verifyUserBy set to true)
 		- route: 		/user/sign-up
 		- body:
 			```javascript
@@ -16,7 +16,7 @@
 				}
 			```
 		- method:		'POST'
-		- response:		
+		- response:
 		- json:
 			```javascript
 				{
@@ -31,12 +31,12 @@
 		- route: /user/verify/:actionId
 		- method: 'GET'
 		- response: HTML that says if activation succeeded or faild
-	
+
 	3. sign-in
-		* Sign in by user credentials or by thired party like (Facebook / Google) if loginWithThirdParty set to true 
+		* Sign in by user credentials or by thired party like (Facebook / Google) if loginWithThirdParty set to true
 		  return token that needs to be send each other api call to identify the user
 		- route: /user/sign-in
-		- body: 
+		- body:
 			- a.
 				```javascript
 				{
@@ -54,34 +54,34 @@
 				}
 				```
 		- method:		'POST'
-		- response: 
-		- json: 
+		- response:
+		- json:
 			```javascript
 			{ token: 'generated-token' }
 			```
 			http-status: 200	OK
-			
+
 		** The above response should be send in an header of each other requests (via interceptor or other)
-						   
+
 	4. forgot-password
 		* Forgot password will send to the email link (changePasswordUrl + actionId that set in config)
 		- route: /forgot-password
-		- body: 
+		- body:
 			```javascript
 			{ username: 'user-email@domain.com' }
 			```
 		- method:		'POST'
-		- reaponse: 
-		- json: 
+		- reaponse:
+		- json:
 			```javascript
 			{ message: 'Password reset link sent to your Email' }
 			```
 			http-status: 200	OK
 		- Email will be send to the user with a link to change password, this link will combine actionId as a part of thr URL
-		
-	
+
+
 	5. change-password
-		* Change password - post to /user/change-password/{actionId} with { password } as payload 
+		* Change password - post to /user/change-password/{actionId} with { password } as payload
 		- route: /user/change-password/:actionId
 		- body:
 			```javascript
@@ -89,26 +89,26 @@
 			```
 		- method:		'POST'
 		- response:
-		- json: 
+		- json:
 			```javascript
 			{ message: 'Password successfully changed' }
 			```
 			http-status: 200	OK
-			
-		
+
+
 	6. get user info		 /user/info (token needs to be send in header)
 		* get user info
 		- route: /user/info
 		- method:		'GET'
-		- header: 
+		- header:
 			```javascript
 			{ token: 'generated-token' }
 			```
-	
+
 	7. contact-us
 		* Sending email to that admin user (admin user in config file) (token needs to be send in header)
 		- route: /user/contact-us
-		- body: 
+		- body:
 			```javascript
 			{
 				username: 'user-email@domain.com',
@@ -118,7 +118,7 @@
 			```
 		- method:		'POST'
 		- response: email with the payload will be sen to the adminEmail
-	
+
 * version: 1.0.7
 
 ### How do I get set up? ###
@@ -129,7 +129,7 @@
 * Create database login user
 * Database Tables - You can create it manually or use the 'dbcreate' script below :
 - Table: ActionVerifications
-```javascript 
+```javascript
 	ActionVerifications: {
 		actionId: {
 			type: DataTypes.UUID,
@@ -229,12 +229,12 @@
 * Edit the following config with the above settings
 * Configuration:
 	- Setup the following config file: [config.js]
-	
-```javascript	
+
+```javascript
 		const userRoute = '/user' //base route
 		const config = {
 		  // if this flag is true the admin user will get verification email instead of the user
-		  verifyUserByAdmin: true,  
+		  verifyUserBy: true,
 		  appName:'Application Name',
 		  userRoute,
 		  port: 5300,
@@ -270,7 +270,7 @@
 			APP_ID: 123456789,
 			APP_SECRET: 'app-secret',
 			VERSION: 'v2.9'
-		  }, 
+		  },
 		  google: {
 			clientId: 'clientId',
 			clientSecret: 'clientSecret',
@@ -295,12 +295,12 @@
 		import { server: userManagements, isAuthenticated } from 'user-managements-node-server'
 		import express from 'express'
 		import bodyParser from 'body-parser'
-		import proxy =  from 'express-http-proxy') 
+		import proxy =  from 'express-http-proxy')
 		import boolParser from 'express-query-boolean'
 		import config from './config'
-		
+
 		const userApiAddress = 'http://localhost:5300'
-		
+
 		const redirectUrl = (req, res, next) => {
 		  Object
 			.assign(
@@ -312,7 +312,7 @@
 
 		  next()
 		}
-		
+
 		const server = (config) => {
 		userManagements(config) //Setup user managements
   		const app = express()
@@ -323,7 +323,7 @@
 
   		app.use(bodyParser.json({limit: '200mb'}));
   		app.use('/api/user', redirectUrl, proxy(userApiAddress))
- 
+
  		app.use('/api/any-other-your-application-route', isAuthenticated(), entityRoute)
 
 		app.listen(config.port, () => {
@@ -332,15 +332,15 @@
 }
 
 server(config)
-```		
-		
+```
+
 * Templates - any of the following templates can be edited with your own HTML template
 	I've choose to work with [dot](https://www.npmjs.com/package/dot) module.
 	You need to build your custom template with dot syntax.
 	For example the default activationBody look like
 
 	```javascript
-		export default 
+		export default
 			`<!doctype html>
 				<html>
 						<head>

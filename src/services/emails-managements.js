@@ -11,7 +11,7 @@ const init = ({ config }) => {
 
     const sendActivationEmail = ({ actionId, username }) => {
         const email =
-            config.verifyUserByAdmin? config.adminEmail : username
+            config.verifyUserBy? config.adminEmail : username
 
         const { body: html, subject } =
             getActivationEmailParams({ username, actionId })

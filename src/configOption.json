@@ -1,5 +1,5 @@
 {
-  "verifyUserByAdmin": false,
+  "verifyUserBy": false,
     "appName": "Node User managemens server",
     "port": 5300,
     "database": {
