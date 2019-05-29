@@ -1,12 +1,21 @@
 import httpStatus from 'http-status'
-import { credentials, baseUrl, signUpRoute, verifyRoute, signInRoute, signOutRoute } from '../data'
+import {
+  credentials,
+  baseUrl,
+  signUpRoute,
+  verifyRoute,
+  signInRoute,
+  signOutRoute,
+  forgotPasswordRoute,
+  changePasswordRoute
+} from '../data'
 import config from '../setup/app.dev.config.json'
 import initEntities from '../../src/entities'
 import { extract } from '../../src/utils/SequelizeHelper'
 import createServer from '../setup'
 import create from '../../scripts/create-database'
 import removeDatabase from '../setup/removeDatabase'
-import { EVENTS } from '../../src/consts'
+import { EVENTS, VERBAL_CODE, ACTION_VERIFICATIONS } from '../../src/consts'
 import chai from 'chai'
 import chaiHttp from 'chai-http'
 const TOKEN_KEY = 'token'
@@ -15,6 +24,7 @@ const logger = {
   info: () => {},
   error: () => {}
 }
+
 const { Users, ActionVerifications } = initEntities({ config: config.database, logger })
 
 describe('Sign up/in verify user', () =>  {
@@ -46,8 +56,9 @@ describe('Sign up/in verify user', () =>  {
           .post(signUpRoute)
           .send(credentials)
           .end((err, res) => {
+            const { body } = res
             expect(res).to.have.status(httpStatus.CREATED)
-            expect(JSON.parse(res.text).message)
+            expect(body.message)
               .to
               .equal(httpStatus[ httpStatus.CREATED ])
           })
@@ -56,15 +67,16 @@ describe('Sign up/in verify user', () =>  {
   })
 
   describe('Verify getting error when create user which is exist', () => {
-    it(`should return ${httpStatus[httpStatus.CONFLICT]}`,
+    it(`Should return ${httpStatus[httpStatus.CONFLICT]}`,
 
     done => {
       request
         .post(signUpRoute)
         .send(credentials)
         .end((err, res) => {
+          const { body } = res
           expect(res).to.have.status(httpStatus.CONFLICT)
-          expect(JSON.parse(res.text).message)
+          expect(body.message)
             .to
             .equal(httpStatus[ httpStatus.CONFLICT ])
 
@@ -74,14 +86,15 @@ describe('Sign up/in verify user', () =>  {
   })
 
   describe(`Sign in with valid credential before activated(verifiy)`, () => {
-    it(`should return ${httpStatus[httpStatus.UNAUTHORIZED]}`,
+    it(`Should return ${httpStatus[httpStatus.UNAUTHORIZED]}`,
       done => {
         request
           .post(signInRoute)
           .send(credentials)
           .end((err, res) => {
+            const { body } = res
             expect(res).to.have.status(httpStatus.UNAUTHORIZED)
-            expect(JSON.parse(res.text).message)
+            expect(body.message)
               .to
               .equal(httpStatus[ httpStatus.UNAUTHORIZED ])
 
@@ -99,7 +112,7 @@ EVENTS = keyMirror({
 
 */
   describe('Verify user by activation link', () => {
-    it(`should return ${httpStatus[httpStatus.OK]}`, done => {
+    it(`Should return ${httpStatus[httpStatus.OK]}`, done => {
       ActionVerifications
         .findOne({ where: { username: credentials.username }})
         .then(extract)
@@ -117,14 +130,15 @@ EVENTS = keyMirror({
   })
 
   describe(`Sign in with invalid password`, () => {
-    it(`should return ${httpStatus[httpStatus.UNAUTHORIZED]}`,
+    it(`Should return ${httpStatus[httpStatus.UNAUTHORIZED]}`,
     done => {
       request
         .post(signInRoute)
         .send({ ...credentials, password: 'no-' + credentials.password })
         .end((err, res) => {
+          const { body } = res
           expect(res).to.have.status(httpStatus.UNAUTHORIZED)
-          expect(JSON.parse(res.text).message)
+          expect(body.message)
             .to.equal(httpStatus[ httpStatus.UNAUTHORIZED ])
 
             done()
@@ -134,16 +148,16 @@ EVENTS = keyMirror({
   })
 
   describe(`Sign in with invalid username`, () => {
-    it(`should return ${httpStatus[httpStatus.UNAUTHORIZED]}`,
+    it(`Should return ${httpStatus[httpStatus.UNAUTHORIZED]}`,
       done => {
         request
           .post(signInRoute)
           .send({ ...credentials, password: 'no-' + credentials.username })
           .end((err, res) => {
+            const { body } = res
             expect(res).to.have.status(httpStatus.UNAUTHORIZED)
-            expect(JSON.parse(res.text).message)
-              .to
-              .equal(httpStatus[ httpStatus.UNAUTHORIZED ])
+            expect(body.message)
+              .to.equal(httpStatus[ httpStatus.UNAUTHORIZED ])
 
               done()
           })
@@ -152,7 +166,7 @@ EVENTS = keyMirror({
   })
 
   describe(`Sign in with valid credential after activated(verifiy)`, () => {
-    it(`should return ${httpStatus[httpStatus.OK]}`,
+    it(`Should return ${httpStatus[httpStatus.OK]}`,
       done => {
         request
           .post(signInRoute)
@@ -167,7 +181,7 @@ EVENTS = keyMirror({
   })
 
   describe('Verify logout fail when logout without token', () => {
-    it(`should return ${httpStatus[httpStatus.UNAUTHORIZED]}`,
+    it(`Should return ${httpStatus[httpStatus.UNAUTHORIZED]}`,
       done => {
         request
           .post(signOutRoute)
@@ -182,16 +196,15 @@ EVENTS = keyMirror({
   })
 
   describe('Verify logout succeded when logout with valid token', () => {
-    it(`should return ${httpStatus[httpStatus.OK]}`,
+    it(`Should return ${httpStatus[httpStatus.OK]}`,
       done => {
         request
           .post(signInRoute)
           .send(credentials)
           .end((err, res) => {
+            const { body } = res
             expect(res).to.have.status(httpStatus.OK)
-
-            const { [TOKEN_KEY]: token } =
-              JSON.parse(res.text)
+            const { [TOKEN_KEY]: token } = body
 
             request
               .post(signOutRoute)
@@ -208,20 +221,88 @@ EVENTS = keyMirror({
   })
 
   describe('Verify activation link obsolete', () => {
-    it(`should return ${httpStatus[httpStatus.FORBIDDEN]}`, (done) => {
+    it(`Should return ${httpStatus[httpStatus.FORBIDDEN]}`, (done) => {
       ActionVerifications
-        .findOne({ where: { username: credentials.username }})
+        .findOne({
+          where: {
+            username: credentials.username,
+            actionType: ACTION_VERIFICATIONS.ACTIVATE_USER,
+            deleted: true
+          }
+        })
         .then(extract)
         .then(({ actionId }) => {
           request
           .get(`${verifyRoute}/${actionId}`)
           .send(credentials)
           .end((err, res) => {
-            expect(res).to.have.status(httpStatus.FORBIDDEN)
+            expect(res)
+              .to.have.status(httpStatus.FORBIDDEN)
 
             done()
           })
         })
     })
   })
+
+
+
+  describe('Verify when posting forgot-password action verification created', () => {
+    it(`Should return ${httpStatus[httpStatus.OK]}`,
+      done => {
+        const { username } = credentials
+        request
+          .post(forgotPasswordRoute)
+          .send({ username })
+          .end((err, res) => {
+            const { body } = res
+            expect(res).to.have.status(httpStatus.OK)
+            const message = body.message
+            expect(message)
+              .to.equal(
+                VERBAL_CODE.RESTORE_PASSWORD_LINK_SENT_TO_USER_IS_EMAIL
+              )
+
+              done()
+          })
+
+
+      }
+    )
+  })
+
+  describe('Verify change password rejected when invalid password/confirmPassword policy', () => {
+    it(`Should return '${httpStatus[httpStatus.BAD_REQUEST]}' with message '${VERBAL_CODE.INVALID_PASSWORD_POLICY}'`,
+      done => {
+        const password = ''
+        const confirmPassword = ''
+
+        ActionVerifications
+          .findOne({
+            where: {
+              username: credentials.username,
+              actionType: ACTION_VERIFICATIONS.FORGORT_PASSWORD,
+              deleted: false
+            }
+          })
+          .then(extract)
+          .then(( { actionId } ) => {
+            request
+              .post(`${changePasswordRoute}/${actionId}`)
+              .send({ password, confirmPassword })
+              .end((err, res) => {
+                const { body } = res
+                expect(res)
+                  .to.have.status(httpStatus.BAD_REQUEST)
+
+                expect(body.message)
+                  .to.equal(VERBAL_CODE.INVALID_PASSWORD_POLICY)
+
+                done()
+              })
+          })
+      }
+    )
+  })
+
 })

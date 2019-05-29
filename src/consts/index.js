@@ -10,8 +10,8 @@ export const ENV = Object.freeze({
 })
 
 export const ACTION_VERIFICATIONS = Object.freeze({
-    ACTIVATE_USER: 1,
-    FORGORT_PASSWORD: 2
+        ACTIVATE_USER: 1,
+        FORGORT_PASSWORD: 2
 })
 
 export const VERBAL_CODE = keyMirror({

@@ -80,7 +80,7 @@ const init = ({
       })
 
   userRoute
-    .route('/change-password')
+    .route('/change-password/:actionId')
     .post(
       logHttpRequestWrapper,
       (req, res) => {
@@ -92,6 +92,11 @@ const init = ({
             res
               .status(httpStatusCode)
               .json({ message })
+          })
+          .catch(error =>{
+            res
+            .status(error.httpStatusCode)
+            .json({ message: error.code })
           })
       })
 

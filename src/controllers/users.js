@@ -9,7 +9,7 @@ import {
   POLICY_CODE_MAPPER,
   EVENTS,
   VERIFY_USER_BY } from '../consts'
-import { isValidActionId, isValidUsernameAndPassword } from '../utils/validator'
+import { isValidActionId, isValidUsernameAndPassword, isValidPasswords } from '../utils/validator'
 import { last, first } from 'lodash'
 import { getToken }  from '../utils/tokenizer'
 import HttpError from '../utils/HttpError'
@@ -465,7 +465,12 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
     new Promise((resolve, reject) => {
       password === confirmPassword
         ? resolve()
-        : reject()
+        : reject(
+            new HttpError(
+              httpStatus.BAD_REQUEST,
+              httpStatus[httpStatus.BAD_REQUEST]
+            )
+          )
     })
   )
 
@@ -481,8 +486,19 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
         }
       )
       .then((actionVerification) => {
-        return first(last(actionVerification))
+        const affected =
+          [].concat(actionVerification)
+            .filter( x => x)
+
+        logger.info(`ActionVerification updated: ${affected.join(',')}`)
+        return affected
       })
+      .then(() => ActionVerifications.findOne(
+        {
+          where:
+          { actionId, actionType: ACTION_VERIFICATIONS.FORGORT_PASSWORD }
+        }
+      ))
       .then(extract)
       .then((actionVerification) => {
         return {
@@ -504,55 +520,64 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
       )
   )
 
+
+
   const changePassword = ({ actionId, password, confirmPassword }) => (
-    isPasswordsEqual({ password, confirmPassword })
-      .then(() =>
-        isValidActionId({ actionId })
-          .then(() => conn.transaction())
-          .then(transaction => (
-            ActionVerifications
-              .findOne({
-                where: {
-                  actionId,
-                  deleted: false,
-                  actionType: ACTION_VERIFICATIONS.FORGORT_PASSWORD
-                }
-              })
-              .then(
-                throwIfInvalid(
-                  'ActionVerification record not found or obsolete',
-                  httpStatus.NOT_FOUND
-                )
-              )
-              .then(extract)
-              .then(updateActionVerificationRequest(transaction))
-              .then(({ actionVerification, transaction }) => (
-                Users
-                  .findOne({ where: { username: actionVerification.username, isValid: true } })
-                  .then(
-                    throwIfInvalid(
-                      'User record not found, probabbly user deleted from the system',
-                      httpStatus.NOT_FOUND
-                    )
+    isValidPasswords({ password, confirmPassword })
+      .then(isPasswordsEqual)
+        .catch(error => {
+          logger.error(`Invalid password/confirmPassword ${error.code}`)
+          throw error
+        })
+        .then(() =>
+          isValidActionId({ actionId })
+            .then(() => conn.transaction())
+            .then(transaction => (
+              ActionVerifications
+                .findOne({
+                  where: {
+                    actionId,
+                    deleted: false,
+                    actionType: ACTION_VERIFICATIONS.FORGORT_PASSWORD
+                  }
+                })
+                .then(
+                  throwIfInvalid(
+                    'ActionVerification record not found or obsolete',
+                    httpStatus.NOT_FOUND
                   )
-                  .then(extract)
-                  .then(user = ({ user, transaction }))
-              ))
-              .then(({ user, transaction }) => (
-                changeUserPassword({ id: user.id, password, transaction})
-                  .then(() => transaction.commit() )
-              ))
-              .then(() => ({
-                httpStatusCode: httpStatus.OK,
-                message: VERBAL_CODE.PASSWORD_SUCCESSFULLY_CHANGED
-              }))
-              .catch((error) => {
-                transaction.rollback()
-                throw error
-              })
-          ))
+                )
+                .then(extract)
+                .then(updateActionVerificationRequest(transaction))
+                .then(({ actionVerification, transaction }) => (
+                  Users
+                    .findOne({ where: { username: actionVerification.username, isValid: true } })
+                    .then(
+                      throwIfInvalid(
+                        'User record not found, probabbly user deleted from the system',
+                        httpStatus.NOT_FOUND
+                      )
+                    )
+                    .then(extract)
+                    .then(user => ({ user, transaction }))
+                ))
+                .then(({ user, transaction }) => (
+                  changeUserPassword({ id: user.id, password, transaction})
+                    .then(() => transaction.commit() )
+                ))
+                .then(() => ({
+                  httpStatusCode: httpStatus.OK,
+                  message: VERBAL_CODE.PASSWORD_SUCCESSFULLY_CHANGED
+                }))
+                .catch((error) => {
+                  transaction.rollback()
+                  logger.error(`Error: ${error.httpStatusCode} - ${error.code}`)
+                  logger.error(error)
+                  throw error
+                })
+            ))
         )
-  )
+    )
 
   const signOut = ({ username, id }) => (
     Users
