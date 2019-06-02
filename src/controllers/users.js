@@ -36,7 +36,7 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
     bcrypt.hashSync(clearPassword)
   )
 
-  const throwIfInvalid = (error, httpStatusCode) => response => {
+  const throwIfNoneResponse = (error, httpStatusCode) => response => {
     if (!response) {
       logger
         .error(error)
@@ -468,7 +468,7 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
         : reject(
             new HttpError(
               httpStatus.BAD_REQUEST,
-              httpStatus[httpStatus.BAD_REQUEST]
+              VERBAL_CODE.CONFIRM_PASSWORD_NOT_EQUAL_TO_PASSWORD
             )
           )
     })
@@ -537,28 +537,55 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
                 .findOne({
                   where: {
                     actionId,
-                    deleted: false,
                     actionType: ACTION_VERIFICATIONS.FORGORT_PASSWORD
                   }
                 })
-                .then(
-                  throwIfInvalid(
-                    'ActionVerification record not found or obsolete',
-                    httpStatus.NOT_FOUND
-                  )
-                )
+                .then(actionVerification => {
+                  if(!actionVerification){
+                    logger.error(VERBAL_CODE.ACTION_VERIFICATION_DOES_NOT_EXIST)
+                    throw new HttpError(
+                      httpStatus.FORBIDDEN,
+                      httpStatus[httpStatus.FORBIDDEN]
+                    )
+                  }
+                  return actionVerification
+                })
                 .then(extract)
+                .then(actionVerification => {
+                  if(actionVerification.deleted){
+                    logger.error(VERBAL_CODE.ACTION_VERIFICATION_OBSOLETE)
+                    throw new HttpError(
+                      httpStatus.FORBIDDEN,
+                      httpStatus[httpStatus.FORBIDDEN]
+                    )
+                  }
+                  return actionVerification
+                })
                 .then(updateActionVerificationRequest(transaction))
                 .then(({ actionVerification, transaction }) => (
                   Users
-                    .findOne({ where: { username: actionVerification.username, isValid: true } })
-                    .then(
-                      throwIfInvalid(
-                        'User record not found, probabbly user deleted from the system',
-                        httpStatus.NOT_FOUND
-                      )
-                    )
+                    .findOne({ where: { username: actionVerification.username } })
+                    .then(user => {
+                      if(!user){
+                        logger.error(VERBAL_CODE.USER_DOES_NOT_EXIST)
+                        throw new HttpError(
+                          httpStatus.FORBIDDEN,
+                          httpStatus[httpStatus.FORBIDDEN]
+                        )
+                      }
+                      return user
+                    })
                     .then(extract)
+                    .then(user => {
+                      if(!user.isValid){
+                        logger.error(VERBAL_CODE.USER_IS_NOT_VALID)
+                        throw new HttpError(
+                          httpStatus.FORBIDDEN,
+                          httpStatus[httpStatus.FORBIDDEN]
+                        )
+                      }
+                      return user
+                    })
                     .then(user => ({ user, transaction }))
                 ))
                 .then(({ user, transaction }) => (

@@ -1,4 +1,5 @@
 import httpStatus from 'http-status'
+import uuid from 'uuid'
 import {
   credentials,
   baseUrl,
@@ -253,8 +254,6 @@ EVENTS = keyMirror({
     })
   })
 
-
-
   describe('Verify when posting forgot-password action verification created', () => {
     it(`Should return ${httpStatus[httpStatus.OK]}`,
       done => {
@@ -271,10 +270,21 @@ EVENTS = keyMirror({
                 VERBAL_CODE.RESTORE_PASSWORD_LINK_SENT_TO_USER_IS_EMAIL
               )
 
-              done()
+            ActionVerifications
+              .findOne({
+                where: {
+                  username: credentials.username,
+                  actionType: ACTION_VERIFICATIONS.FORGORT_PASSWORD,
+                  deleted: false
+                }
+              })
+              .then(extract)
+              .then(({ username }) => {
+                expect(username)
+                  .to.equal(credentials.username)
+              })
+              .then(() => done())
           })
-
-
       }
     )
   })
@@ -307,6 +317,165 @@ EVENTS = keyMirror({
                   .to.equal(VERBAL_CODE.INVALID_PASSWORD_POLICY)
 
                 done()
+              })
+          })
+      }
+    )
+  })
+
+  describe('Verify change password rejected when confirmPassword not equal to password', () => {
+    it(`Should return '${httpStatus[httpStatus.BAD_REQUEST]}' with message '${VERBAL_CODE.CONFIRM_PASSWORD_NOT_EQUAL_TO_PASSWORD}'`,
+      done => {
+        const password = '12345678'
+        const confirmPassword = '98887776'
+
+        ActionVerifications
+          .findOne({
+            where: {
+              username: credentials.username,
+              actionType: ACTION_VERIFICATIONS.FORGORT_PASSWORD,
+              deleted: false
+            }
+          })
+          .then(extract)
+          .then(( { actionId } ) => {
+            request
+              .post(`${changePasswordRoute}/${actionId}`)
+              .send({ password, confirmPassword })
+              .end((err, res) => {
+                const { body } = res
+                expect(res)
+                  .to.have.status(httpStatus.BAD_REQUEST)
+
+                expect(body.message)
+                  .to.equal(VERBAL_CODE.CONFIRM_PASSWORD_NOT_EQUAL_TO_PASSWORD)
+
+                done()
+              })
+          })
+      }
+    )
+  })
+
+  describe('Verify change password rejected when user is not valid', () => {
+    it(`Should return '${httpStatus[httpStatus.FORBIDDEN]}' with message '${httpStatus[httpStatus.FORBIDDEN]}'`,
+      done => {
+        const password = '12345678'
+        const confirmPassword = '12345678'
+
+        Users
+          .findOne({ where: { username: credentials.username } })
+          .then(extract)
+          .then(({ username }) => (
+            Users
+              .update({ isValid: false }, { where: { username }, returning: true })
+          ))
+          .then(() =>
+            ActionVerifications
+              .findOne({
+                where: {
+                  username: credentials.username,
+                  actionType: ACTION_VERIFICATIONS.FORGORT_PASSWORD,
+                  deleted: false
+                }
+              })
+              .then(extract)
+              .then(( { actionId } ) => {
+                request
+                  .post(`${changePasswordRoute}/${actionId}`)
+                  .send({ password, confirmPassword })
+                  .end((err, res) => {
+                    const { body } = res
+
+                    expect(res)
+                      .to.have.status(httpStatus.FORBIDDEN)
+
+                    expect(body.message)
+                      .to.equal(httpStatus[httpStatus.FORBIDDEN])
+
+                    Users
+                      .update({ isValid: true }, { where: { username: credentials.username }, returning: true })
+                      .then(() => done())
+
+                  })
+              })
+          )
+      }
+    )
+  })
+
+  describe('Verify change password rejected when invalid actionId', () => {
+    it(`Should return '${httpStatus[httpStatus.FORBIDDEN]}' with message '${httpStatus[httpStatus.FORBIDDEN]}'`,
+      done => {
+        const password = '12345678'
+        const confirmPassword = '12345678'
+
+        Promise
+          .resolve({ actionId: uuid.v4()})
+          .then(( { actionId } ) => {
+            request
+              .post(`${changePasswordRoute}/${actionId}`)
+              .send({ password, confirmPassword })
+              .end((err, res) => {
+                const { body } = res
+                expect(res)
+                  .to.have.status(httpStatus.FORBIDDEN)
+
+                expect(body.message)
+                  .to.equal(httpStatus[httpStatus.FORBIDDEN])
+
+                done()
+              })
+          })
+      }
+    )
+  })
+
+  describe('Verify change password succeded when confirmPassword equal to password and match the policy', () => {
+    it(`Should return '${httpStatus[httpStatus.OK]}' with message '${VERBAL_CODE.PASSWORD_SUCCESSFULLY_CHANGED}'`,
+      done => {
+        const password = '12345678'
+        const confirmPassword = '12345678'
+
+        ActionVerifications
+          .findOne({
+            where: {
+              username: credentials.username,
+              actionType: ACTION_VERIFICATIONS.FORGORT_PASSWORD,
+              deleted: false
+            }
+          })
+          .then(extract)
+          .then(( { actionId } ) => {
+            request
+              .post(`${changePasswordRoute}/${actionId}`)
+              .send({ password, confirmPassword })
+              .end((err, res) => {
+                const { body } = res
+                expect(res)
+                  .to.have.status(httpStatus.OK)
+
+                expect(body.message)
+                  .to.equal(VERBAL_CODE.PASSWORD_SUCCESSFULLY_CHANGED)
+
+                ActionVerifications
+                  .findOne({
+                    where: {
+                      username: credentials.username,
+                      actionType: ACTION_VERIFICATIONS.FORGORT_PASSWORD,
+                      deleted: true
+                    }
+                  })
+                  .then(extract)
+                  .then(( { actionId: deletedActionId, deleted } ) => {
+                    expect(deletedActionId)
+                      .to.equal(actionId)
+
+                    expect(deleted)
+                      .to.equal(true)
+
+                    done()
+                  })
               })
           })
       }
