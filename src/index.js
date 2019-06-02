@@ -31,7 +31,7 @@ const server = ({ appConfig, ...externals}) => (
         resolve({
           host: server.address().address,
           port: server.address().port,
-          stop: server.close,
+          stop: server.close.bind(server),
           on
         })
       })

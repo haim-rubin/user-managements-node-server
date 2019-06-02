@@ -305,4 +305,8 @@ EVENTS = keyMirror({
     )
   })
 
+  after(done => {
+    server.stop()
+    done()
+  })
 })
