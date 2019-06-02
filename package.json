@@ -8,7 +8,8 @@
     "test": "mocha -r esm --timeout=10000 ./test/**/*.js",
     "start": "node index",
     "mon": "nodemon index",
-    "dbcreate": "node ./scripts/force-database-create"
+    "dbcreate": "node ./scripts/force-database-create",
+    "lint":"./node_modules/.bin/eslint src/index.js"
   },
   "repository": {
     "type": "git",
@@ -49,6 +50,8 @@
   "devDependencies": {
     "chai": "^4.2.0",
     "chai-http": "^4.3.0",
+    "eslint": "^5.16.0",
+    "eslint-plugin-node": "^9.1.0",
     "expect.js": "^0.3.1",
     "mocha": "^5.2.0",
     "shelljs": "^0.8.3",
