@@ -10,7 +10,7 @@ const addApprovedActivationEmailListener = ({
     send,
     loginUrl,
     relDirname,
-    on
+    addListener,
 }) =>{
 
     const bodyTemplate =
@@ -40,7 +40,7 @@ const addApprovedActivationEmailListener = ({
         })
     )
 
-    on(event, ({ username, admin, fullName }) => {
+    addListener(event, ({ username, admin, fullName }) => {
         const html =
             getBody({
                 loginUrl,

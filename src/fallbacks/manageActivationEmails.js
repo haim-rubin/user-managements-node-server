@@ -3,10 +3,6 @@ import addActivationEmailListener from './emails/activation'
 import addApprovedEmailListener from './emails/approved'
 import addNotifyEmailListener from './emails/notify'
 import initEmailSend from '../utils/emailProvider'
-const hasBodyAndSubject = ({ body, subject }) => (
-    [ body, subject ]
-        .filter(v => v).length === 2
-)
 
 const isMissingSettings = obj => (
     Object
@@ -38,9 +34,11 @@ const tryAssignListenerOrGetErrors = ({ templates, params, title, assign }) =>{
     return []
 }
 
-const hasProps = obj => !!Object.keys(obj).length
-
-const manageActivationEmails = ({ on, config, relDirname }) => {
+const manageActivationEmails = ({
+    addListener,
+    config,
+    relDirname,
+}) => {
 
     const { verificationUrl, loginUrl, adminEmail, appName, email = {} } = config
     const missingEmailSettings =
@@ -67,7 +65,7 @@ const manageActivationEmails = ({ on, config, relDirname }) => {
                 config: email
             }).send
         ),
-        on,
+        addListener,
         relDirname
     }
 

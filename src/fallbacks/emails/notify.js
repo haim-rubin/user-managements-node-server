@@ -10,7 +10,7 @@ const addNotifyEmailListener = ({
     send,
     admin,
     relDirname,
-    on
+    addListener
 }) =>{
 
     const bodyTemplate =
@@ -39,7 +39,7 @@ const addNotifyEmailListener = ({
         })
     )
 
-    on(event, ({ username, fullName }) => {
+    addListener(event, ({ username, fullName }) => {
         const html =
             getBody({
                 username,

@@ -10,7 +10,7 @@ const addActivationEmailListener = ({
     event,
     send,
     relDirname,
-    on
+    addListener
 }) => {
 
 
@@ -39,7 +39,7 @@ const addActivationEmailListener = ({
         })
     )
 
-    on(event, ({ actionId, username }) => {
+    addListener(event, ({ actionId, username }) => {
         const html =
             getBody({ actionId, username })
 

@@ -46,13 +46,15 @@ const init = ({ appConfig, externals, relDirname }) => {
 
     const events = new EventEmmiter()
     const emit = events.emit.bind(events)
-    const on = events.on.bind(events)
+    const addListener = events.addListener.bind(events)
+    const removeListener =  events.removeListener.bind(events)
 
     const emailErrors =
         manageActivationEmails({
-            on,
+            addListener,
+            removeListener,
             config,
-            relDirname
+            relDirname,
         })
 
     const logger =
@@ -90,7 +92,8 @@ const init = ({ appConfig, externals, relDirname }) => {
         settings,
         logger,
         config,
-        on
+        addListener,
+        removeListener,
     }
 }
 

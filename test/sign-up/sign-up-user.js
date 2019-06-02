@@ -46,12 +46,20 @@ describe('Sign up/in verify user', () =>  {
   describe('Verify create user', () => {
     it(`Should return ${httpStatus[httpStatus.CREATED]}`,
       done => {
-        server.on(EVENTS.USER_CREATED, ({ username, isValid }) => {
+
+        const handler = ({ username, isValid }) => {
           expect(username)
             .to.equal(credentials.username)
 
+          expect(isValid)
+            .to.equal(false)
+
+          server.removeListener(EVENTS.USER_CREATED, handler)
           done()
-        })
+        }
+
+        server.addListener(EVENTS.USER_CREATED, handler)
+
         request
           .post(signUpRoute)
           .send(credentials)
