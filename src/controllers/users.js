@@ -14,6 +14,7 @@ import { last, first } from 'lodash'
 import { getToken }  from '../utils/tokenizer'
 import HttpError from '../utils/HttpError'
 import { extract } from '../utils/SequelizeHelper'
+import { getEncryptedPasswordAndSalt, verifyPassword } from '../utils/credentials'
 const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
   const EmailService = {} //from '../services/email-service'
 
@@ -31,26 +32,13 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
   const {  Users, ActionVerifications } = dal
   const conn = initConn({ config: config.database })
 
-
-  const getPasswordEncrypt = (clearPassword) => (
-    bcrypt.hashSync(clearPassword)
-  )
-
-  const throwIfNoneResponse = (error, httpStatusCode) => response => {
-    if (!response) {
-      logger
-        .error(error)
-
-      throw new HttpError(httpStatusCode)
-    }
-    return response
-  }
-
   const setActionVerification = ({ user, actionType }, { returning }) => (
     ActionVerifications
       .findOne({ where: { username: user.username, actionType, deleted: false } })
       .then((exist) => (
-        exist? exist: ActionVerifications.create({ username: user.username, actionType }, { returning })
+        exist
+        ? exist
+        : ActionVerifications.create({ username: user.username, actionType }, { returning })
       ))
       .then(extract)
       .then(({ actionId }) => ({ ...user, actionId }))
@@ -83,10 +71,12 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
           const code = POLICY_CODE_MAPPER[`${isValidUsername}-${isValidPassword}`]
           throw new HttpError(httpStatus.BAD_REQUEST, code)
       })
-      .then(() => ({
+      .then(() => getEncryptedPasswordAndSalt(password))
+      .then( ({ password, salt }) => ({
+        password,
+        salt,
         username,
-        isValid: isAutoValid,
-        password: getPasswordEncrypt(password)
+        isValid: isAutoValid
       }))
       .then((user) => (
         Users.create(user)
@@ -207,7 +197,6 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
         logger.info(logMessage)
         logger.info(`User (${username}) activated.`)
         emit(EVENTS.USER_APPROVED, { username, admin: config.adminEmail })
-       // sendApprovedActivationEmail({ username })
 
         return {
           httpStatusCode: httpStatus.OK
@@ -272,23 +261,23 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
         .findOne({ where: { username } })
         .then((response) => {
           if (!response) {
-            throw 'User not exist'
+            throw VERBAL_CODE.USER_DOES_NOT_EXIST
           }
           return response
         })
         .then(extract)
         .then((user) => {
           if(!user.isValid){
-            throw 'User is not valid'
+            throw VERBAL_CODE.USER_IS_NOT_VALID
           }
           return user
         })
         .then((user) => (
-          comparePassword(password, user.password)
+          verifyPassword({ password, encryptedPassword: user.password, salt: user.salt })
             .then(() => user)
             .catch((error) => {
               logger.error(error)
-              throw 'Invalid password'
+              throw VERBAL_CODE.INVALID_PASSWORD
             })
         ))
         .catch(error => {
@@ -509,15 +498,18 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
   )
 
   const changeUserPassword = ({ id, password, transaction }) => (
-    Users
-      .update(
-        { password: getPasswordEncrypt(password) },
-        {
-          where: { id },
-          transaction,
-          returning: true
-        }
-      )
+    getEncryptedPasswordAndSalt(password)
+      .then(({ password, salt }) => (
+        Users
+          .update(
+            { password, salt},
+            {
+              where: { id },
+              transaction,
+              returning: true
+            }
+          )
+      ))
   )
 
 

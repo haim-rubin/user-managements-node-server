@@ -16,6 +16,9 @@ const init = uuid => (
     password: {
       type: DataTypes.TEXT
     },
+    salt:{
+      type: DataTypes.TEXT
+    },
     fullName: {
       type: DataTypes.STRING,
       allowNull: true
