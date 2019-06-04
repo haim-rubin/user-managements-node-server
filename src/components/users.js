@@ -185,7 +185,7 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
             username: user.username
           }))
       ))
-      .then(({ effected, transaction, username }) => {
+      .then(({ transaction, username }) => {
         transaction
           .commit()
 

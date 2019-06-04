@@ -126,13 +126,26 @@ EVENTS = keyMirror({
         .findOne({ where: { username: credentials.username }})
         .then(extract)
         .then(({ actionId }) => {
+          // server.addListener(EVENTS.USER_CREATED, handler)
+
+          const handler = ({ username, admin }) => {
+            expect(username)
+              .to.equal(credentials.username)
+
+            expect(admin)
+              .to.equal(config.adminEmail)
+
+            server.removeListener(EVENTS.USER_APPROVED, handler)
+            done()
+          }
+
+          server.addListener(EVENTS.USER_APPROVED, handler)
+
           request
             .get(`${verifyRoute}/${actionId}`)
             .send(credentials)
             .end((err, res) => {
               expect(res).to.have.status(httpStatus.OK)
-
-              done()
             })
         })
     })
