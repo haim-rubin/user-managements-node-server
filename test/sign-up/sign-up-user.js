@@ -525,9 +525,8 @@ EVENTS = keyMirror({
     )
   })
 
-
-  describe(`Get user info without token`, () => {
-    it(`Should return ${httpStatus[httpStatus.OK]}`,
+  describe(`Get user info with valid token`, () => {
+    it(`Should return ${httpStatus[httpStatus.OK]} and username`,
       done => {
         const password = '12345678'
         request
