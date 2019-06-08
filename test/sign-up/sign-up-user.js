@@ -8,7 +8,8 @@ import {
   signInRoute,
   signOutRoute,
   forgotPasswordRoute,
-  changePasswordRoute
+  changePasswordRoute,
+  userInfo
 } from '../data'
 import config from '../setup/app.dev.config.json'
 import initEntities from '../../src/entities'
@@ -489,6 +490,61 @@ EVENTS = keyMirror({
 
                     done()
                   })
+              })
+          })
+      }
+    )
+  })
+
+  describe(`Get user info without token`, () => {
+    it(`Should return ${httpStatus[httpStatus.UNAUTHORIZED]}`,
+      done => {
+        request
+          .get(userInfo)
+          .end((err, res) => {
+            //console.log(res)
+            expect(res).to.have.status(httpStatus.UNAUTHORIZED)
+
+            done()
+          })
+      }
+    )
+  })
+
+  describe(`Get user info with invalid token`, () => {
+    it(`Should return ${httpStatus[httpStatus.UNAUTHORIZED]}`,
+      done => {
+        request
+          .get(userInfo)
+          .set('token', uuid.v4())
+          .end((err, res) => {
+            expect(res).to.have.status(httpStatus.UNAUTHORIZED)
+            done()
+          })
+      }
+    )
+  })
+
+
+  describe(`Get user info without token`, () => {
+    it(`Should return ${httpStatus[httpStatus.OK]}`,
+      done => {
+        const password = '12345678'
+        request
+          .post(signInRoute)
+          .send({ ...credentials, password })
+          .end((err, res) => {
+            const { body } = res
+            expect(res).to.have.status(httpStatus.OK)
+            const { [TOKEN_KEY]: token } = body
+            request
+              .get(userInfo)
+              .set('token', token)
+              .end((err, res) => {
+                const { body } = res
+                expect(res).to.have.status(httpStatus.OK)
+                expect(body.username).to.equal(credentials.username)
+                done()
               })
           })
       }

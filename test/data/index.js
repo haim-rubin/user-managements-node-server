@@ -12,4 +12,5 @@ export const verifyRoute = `/verify`
 export const signOutRoute = `/sign-out`
 export const forgotPasswordRoute = `/forgot-password`
 export const changePasswordRoute = `/change-password`
+export const userInfo = '/info'
 
