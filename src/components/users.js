@@ -221,7 +221,7 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
     })
   )
 
-  const signInViaThirdparty = ({ thirdParty, username, password }) => {
+  const signInViaThirdparty = ({ thirdParty, username, password, userAgentIdentity }) => {
     const logPrefix = `User (${username}) - signInViaThirdparty (${thirdParty}) ->`
 
     logger
@@ -250,9 +250,8 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
       ))
   }
 
-  const signInUser = ({ username, password }) => {
+  const signInUser = ({ username, password, userAgentIdentity }) => {
     const logPrefix = `User (${username}) - signInUser ->`
-
     logger
       .info(`${logPrefix} requested.`)
 
@@ -287,12 +286,12 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
       )
   }
 
-  const signIn = ({ username, password, thirdParty }) => {
+  const signIn = ({ username, password, thirdParty, userAgentIdentity }) => {
     return isValidUsernameAndPassword({ username, password })
       .then(() => (
         config.loginWithThirdParty && thirdParty ?
-          signInViaThirdparty({ thirdParty, username, password }) :
-          signInUser({ username, password })
+          signInViaThirdparty({ thirdParty, username, password, userAgentIdentity }) :
+          signInUser({ username, password, userAgentIdentity })
       ))
       .then(user => {
         if(!user.isValid){
@@ -314,7 +313,6 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
     [THIRDPARTY.FACEBOOK]: 'facebookToken',
     [THIRDPARTY.GOOGLE]: 'googleToken'
   }
-
 
   const createUser = (userData) => (
     Users

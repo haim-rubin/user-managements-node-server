@@ -1,6 +1,8 @@
 import HttpError from "../utils/HttpError";
 import httpStatus from 'http-status'
 import initRouteHelper from './routeHelper'
+import crypto from 'crypto'
+import querystring from 'querystring'
 const init = ({
   signUp,
   signIn,
@@ -30,6 +32,26 @@ const init = ({
     next()
   }
 
+  const getUserAgentUniqueIdentify = userAgentInfo => {
+    try{
+
+
+    const hash =
+      crypto.createHash('sha256')
+
+    return (
+      hash
+        .update(
+          querystring
+            .stringify(userAgentInfo)
+        )
+        .digest('hex')
+    )}
+    catch(error){
+      return ''
+    }
+  }
+
   app.use(enrichWithClientInfo)
   app.use(userRoutePrefix, userRouter)
 
@@ -53,7 +75,14 @@ const init = ({
       logHttpRequestWrapper,
       (req, res) => {
         const { username, password, thirdParty } = req.body
-        signIn({ username, password, thirdParty })
+        const { clientInfo } = req
+        const userAgentIdentity =
+          getUserAgentUniqueIdentify({
+            ...clientInfo,
+            username
+          })
+
+        signIn({ username, password, thirdParty, clientInfo, userAgentIdentity })
           .then(responseOk(res))
           .catch(responseError(res, httpStatus.UNAUTHORIZED))
       })
@@ -64,8 +93,14 @@ const init = ({
       unauthorizedIfNotAuthenticated(),
       logHttpRequestWrapper,
       (req, res) => {
-        const { userInfo } = req
-        signOut(userInfo)
+        const { userInfo, clientInfo } = req
+        const userAgentIdentity =
+          getUserAgentUniqueIdentify({
+            clientInfo,
+            username: userInfo.username
+          })
+
+        signOut({ ...userInfo, userAgentIdentity })
           .then(responseOk(res))
           .catch(err =>{
             return err
