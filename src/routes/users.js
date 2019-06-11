@@ -1,7 +1,6 @@
 import HttpError from "../utils/HttpError";
 import httpStatus from 'http-status'
 import initRouteHelper from './routeHelper'
-import path from 'path'
 const init = ({
   signUp,
   signIn,
@@ -13,8 +12,9 @@ const init = ({
   validateAuthenticated,
   getVerifyResponseHTML,
   isAuthenticated,
-  auditLogger
-}) => (userRoute) => {
+  auditLogger,
+  userRoutePrefix
+}) => (userRouter, app) => {
 
   const {
     unauthorizedIfNotAuthenticated,
@@ -24,10 +24,19 @@ const init = ({
     logHttpRequest
   } = initRouteHelper({ isAuthenticated })
 
+  const enrichWithClientInfo = (req, _, next) => {
+    Object
+      .assign(req, getClientInfo(req))
+    next()
+  }
+
+  app.use(enrichWithClientInfo)
+  app.use(userRoutePrefix, userRouter)
+
   const logHttpRequestWrapper =
     logHttpRequest(auditLogger)
 
-  userRoute
+  userRouter
     .route('/sign-up')
     .post(
       logHttpRequestWrapper,
@@ -38,7 +47,7 @@ const init = ({
           .catch(responseError(res))
       })
 
-  userRoute
+  userRouter
     .route('/sign-in')
     .post(
       logHttpRequestWrapper,
@@ -49,7 +58,7 @@ const init = ({
           .catch(responseError(res, httpStatus.UNAUTHORIZED))
       })
 
-  userRoute
+  userRouter
     .route('/sign-out')
     .post(
       unauthorizedIfNotAuthenticated(),
@@ -64,7 +73,7 @@ const init = ({
           .catch(responseError(res))
       })
 
-  userRoute
+  userRouter
     .route('/forgot-password')
     .post(
       logHttpRequestWrapper,
@@ -79,7 +88,7 @@ const init = ({
           .catch(responseError(res))
       })
 
-  userRoute
+  userRouter
     .route('/change-password/:actionId')
     .post(
       logHttpRequestWrapper,
@@ -100,7 +109,7 @@ const init = ({
           })
       })
 
-  userRoute
+  userRouter
     .route('/verify/:actionId')
     .get(
       logHttpRequestWrapper,
@@ -120,7 +129,7 @@ const init = ({
           })
       })
 
-  userRoute
+  userRouter
     .route('/info')
     .get(
       unauthorizedIfNotAuthenticated(),
@@ -136,7 +145,7 @@ const init = ({
           .catch(responseError(res, httpStatus.BAD_REQUEST))
       })
 
-  userRoute
+  userRouter
     .route('/contact-us')
     .post(
       unauthorizedIfNotAuthenticated(),
@@ -149,7 +158,7 @@ const init = ({
           })
       })
 
-  userRoute
+  userRouter
     .route('/is-authenticated')
     .post(
       logHttpRequestWrapper,

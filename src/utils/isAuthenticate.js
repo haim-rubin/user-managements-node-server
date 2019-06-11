@@ -15,13 +15,13 @@ const isAuthenticated = (role) => (
 const isAuthenticate = (endpoint) => (
     (req, res, next) => {
         const { headers , body } = req
-    
+
         return fetch(
             endpoint,
             {
-                headers, 
-                method: 'POST', 
-                body 
+                headers,
+                method: 'POST',
+                body
             }
         )
         .then((response) => {

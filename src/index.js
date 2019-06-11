@@ -9,7 +9,6 @@ const server = ({ appConfig, ...externals}) => (
   new Promise((resolve, reject ) => {
 
     try{
-
       const {
         settings,
         logger,
@@ -21,9 +20,9 @@ const server = ({ appConfig, ...externals}) => (
       const app = express()
       app.use(bodyParser.urlencoded({ extended: true }));
       app.use(bodyParser.json())
-      const userRoute = express.Router({ mergeParams: true })
-      initUserApis(settings)(userRoute)
-      app.use(config.userRoute, /* validateInput, writeAudit ,*/ userRoute)
+      const userRouter = express.Router({ mergeParams: true })
+      const { userRoutePrefix } = config
+      initUserApis({ ...settings, userRoutePrefix })(userRouter, app)
       const server = app.listen(config.port, () => {
         logger.info(`Server is running on port ${config.port}`)
         resolve({

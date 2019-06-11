@@ -41,10 +41,10 @@ const init = ({ isAuthenticated, logger }) => {
     })
 
     const logHttpRequest = log => (
-        (req, res, next) => {
-            const { clientInfo } = getClientInfo(req)
+        (req, _, next) => {
+            const { clientInfo } = req
             const { userInfo } = req
-            const { body, params, query, method } = req
+            const { body: { password, ...body }, params, query, method } = req
 
             log({
                 originalUrl: req.originalUrl,

@@ -231,62 +231,69 @@
 	- Setup the following config file: [config.js]
 
 ```javascript
-		const userRoute = '/user' //base route
-		const config = {
-		  // if this flag is true the admin user will get verification email instead of the user
-		  verifyUserBy: true,
-		  appName:'Application Name',
-		  userRoute,
-		  port: 5300,
-		  database: {
-			name: 'user-managements-db-name',
-			username: 'user-managements-db-username',
-			password: 'user-managements-db-password',
-			host: 'localhost',
-			dialect: 'postgres'|'mysql'|'sqlite'|'mssql' // <- Database type option is what Sequelize supports
-			pool: {
-			  max: 5,
-			  min: 0,
-			  idle: 10000
+{
+	"verifyUserBy": false,
+    "appName": "Node User managemens server",
+	"port": 5300,
+	"database": {
+		"name": "user-managements-db",
+		"username": "user-managements-username",
+		"password": "user-managements-password",
+		"settings": {
+			"host": "localhost",
+			"dialect": "sqlite",
+			"storage": "/tmp/user-managements.sqlite",
+			"pool": {
+				"max": 5,
+				"min": 0,
+				"idle": 10000
 			},
-			logging: false //Avoid log sequelize queries
-		  },
-		  email: {
-			service: 'gmail',
-			user: 'admin-is-email@gmail.com',
-			pass: 'admin-is-email-password',
-			from: '"Application name" <admin-is-email@gmail.com>'
-		  },
-		  verificationUrl: `http://localhost:5300${userRoute}/verify/`, // Web client UI
-		  changePasswordUrl: `http://localhost:3000/change-password/`, // Web client UI
-		  loginUrl: 'http://localhost:3000', // Web client UI
-		  tokenHash: 'token-key', // replace with realy token
-		  adminEmail: 'admin-is-email@gmail.com',
-		  log4js: {
-			appenders: { app: { type: 'file', filename: '/tmp/logs/app-name.log' } },
-			categories: { default: { appenders: ['app'], level: 'all' } }
-		  },
-		  facebook: {
-			APP_ID: 123456789,
-			APP_SECRET: 'app-secret',
-			VERSION: 'v2.9'
-		  },
-		  google: {
-			clientId: 'clientId',
-			clientSecret: 'clientSecret',
-			apiKey: 'apiKey'
-		  },
-		  loginWithThirdParty: true, // true is for supporting login via Facebook/Google
-		  templates: {
-				activationBody : '../email-templates/activation/body.html',
-				activationSubject : '../email-templates/activation/subject.html',
-				activationResponse : '../email-templates/activation/response.html',
-				activationBodyApproved : '../email-templates/approved-activation/body.html',
-				activationSubjectApproved : '../email-templates/approved-activation/subject.html',
-				notifyBodyAdminWhenUserCreated : '../email-templates/notify-admin-when-user-created/body.html',
-				notifySubjectAdminWhenUserCreated : '../email-templates/notify-admin-when-user-created/subject.html'
-		  }
+			"logging": false
 		}
+    },
+    "email": {
+        "service": "<Email Service>",
+        "user": "<Email Username>",
+        "pass": "<Email Password>",
+        "from": "<Email From>"
+    },
+    "verificationUrl": "<Verify User URL>",
+    "changePasswordUrl": "<Change Password URL>",
+    "loginUrl": "<Login URL>",
+    "tokenHash": "<Token Hash Key>",
+    "adminEmail": "<Admin Email>",
+    "log4js": {
+		"appenders": { "app": { "type": "file", "filename": "/Users/haimr-mac/logs/app-name.log" } },
+      	"categories": { "default": { "appenders": ["app"], "level": "all" } }
+    },
+    "facebook": {
+    	"APP_ID": "<Facebook App ID>",
+    	"APP_SECRET": "<Facebook App Secret>",
+    	"VERSION": "v2.9"
+    },
+    "google": {
+    	"clientId": "<Google Client ID>",
+    	"clientSecret": "<Google Client Secret>",
+    	"apiKey": "<Google Api Key>"
+    },
+    "loginWithThirdParty": true,
+    "templates": {
+		"activation":{
+			"activationBody" : "./email-templates/activation/body.html",
+			"subject" : "./email-templates/activation/subject.html"
+		},
+		"approved":{
+			"body" : "./email-templates/approved-activation/body.html",
+			"subject" : "./email-templates/approved-activation/subject.html"
+		},
+		"notify":{
+			"body" : "./email-templates/notify-admin-when-user-created/body.html",
+			"subject" : "./email-templates/notify-admin-when-user-created/subject.html"
+		},
+		"activationResponse" : "./email-templates/activation/response.html"
+    },
+    "userRoutePrefix": "/user"
+  }
 ```
 * Run: yarn dbcreate Or npm run dbcreate - This script will create the relevant tables
 * Run the server:
@@ -324,7 +331,9 @@
   		app.use(bodyParser.json({limit: '200mb'}));
   		app.use('/api/user', redirectUrl, proxy(userApiAddress))
 
- 		app.use('/api/any-other-your-application-route', isAuthenticated(), entityRoute)
+ 		app.use('/api/any-other-your-application-route', isAuthenticated(), (req, res) => {
+			 //Your handler
+		 })
 
 		app.listen(config.port, () => {
 			console.log(`Server is running on port ${config.port}`)

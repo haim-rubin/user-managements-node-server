@@ -50,6 +50,6 @@
       "subject" : "./email-templates/notify-admin-when-user-created/subject.html"
     },
     "activationResponse" : "./email-templates/activation/response.html"
-
-  }
+  },
+  "userRoutePrefix": "/user"
 }
