@@ -32,24 +32,25 @@ const init = ({
     next()
   }
 
-  const getUserAgentUniqueIdentify = userAgentInfo => {
-    try{
+  const getUserAgentUniqueIdentify = (userAgentInfo) => {
+    return new Promise((resolve, reject) => {
+      try {
+        const hash =
+          crypto.createHash('sha256')
 
-
-    const hash =
-      crypto.createHash('sha256')
-
-    return (
-      hash
-        .update(
-          querystring
-            .stringify(userAgentInfo)
+        resolve(
+          hash
+            .update(
+              querystring
+                .stringify(userAgentInfo)
+            )
+            .digest('hex')
         )
-        .digest('hex')
-    )}
-    catch(error){
-      return ''
-    }
+      }
+      catch(error){
+        reject(error)
+      }
+    })
   }
 
   app.use(enrichWithClientInfo)
@@ -76,15 +77,17 @@ const init = ({
       (req, res) => {
         const { username, password, thirdParty } = req.body
         const { clientInfo } = req
-        const userAgentIdentity =
-          getUserAgentUniqueIdentify({
-            ...clientInfo,
-            username
-          })
 
-        signIn({ username, password, thirdParty, clientInfo, userAgentIdentity })
+        getUserAgentUniqueIdentify({
+          ...clientInfo,
+          username
+        })
+        .then(userAgentIdentity => (
+          signIn({ username, password, thirdParty, clientInfo, userAgentIdentity })
           .then(responseOk(res))
-          .catch(responseError(res, httpStatus.UNAUTHORIZED))
+        ))
+        .catch(responseError(res, httpStatus.UNAUTHORIZED))
+
       })
 
   userRouter
@@ -94,19 +97,18 @@ const init = ({
       logHttpRequestWrapper,
       (req, res) => {
         const { userInfo, clientInfo } = req
-        const userAgentIdentity =
-          getUserAgentUniqueIdentify({
-            clientInfo,
-            username: userInfo.username
-          })
 
-        signOut({ ...userInfo, userAgentIdentity })
+        getUserAgentUniqueIdentify({
+          ...clientInfo,
+          username: userInfo.username
+        })
+        .then(userAgentIdentity => (
+          signOut({ ...userInfo, userAgentIdentity })
           .then(responseOk(res))
-          .catch(err =>{
-            return err
-          })
-          .catch(responseError(res))
-      })
+        ))
+        .catch(responseError(res))
+      }
+    )
 
   userRouter
     .route('/forgot-password')

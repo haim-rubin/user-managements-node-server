@@ -21,6 +21,10 @@ const init = uuid => (
     token: {
       type: DataTypes.STRING,
       allowNull: true
+    },
+    userAgentIdentity: {
+      type: DataTypes.STRING,
+      allowNull: false
     }
   },
     {

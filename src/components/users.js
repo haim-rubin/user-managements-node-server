@@ -29,7 +29,7 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
   const is3rdPartyAutoValid =
     config.verify3rdPartyUserBy === VERIFY_USER_BY.AUTO
 
-  const {  Users, ActionVerifications } = dal
+  const {  Users, ActionVerifications, Tokens } = dal
   const conn = initConn({ config: config.database })
 
   const setActionVerification = ({ user, actionType }, { returning }) => (
@@ -221,7 +221,7 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
     })
   )
 
-  const signInViaThirdparty = ({ thirdParty, username, password, userAgentIdentity }) => {
+  const signInViaThirdparty = ({ thirdParty, username, password }) => {
     const logPrefix = `User (${username}) - signInViaThirdparty (${thirdParty}) ->`
 
     logger
@@ -286,7 +286,7 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
       )
   }
 
-  const signIn = ({ username, password, thirdParty, userAgentIdentity }) => {
+  const signIn = ({ username, password, thirdParty, clientInfo, userAgentIdentity }) => {
     return isValidUsernameAndPassword({ username, password })
       .then(() => (
         config.loginWithThirdParty && thirdParty ?
@@ -300,7 +300,7 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
         }
         return user
       })
-      .then(user => generateUserToken(user))
+      .then(user => generateUserToken({ user, userAgentIdentity, ip: clientInfo.ip }))
   }
 
   const loginVia3rdParty = ({ username, token, thirdParty }) => {
@@ -378,15 +378,36 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
       })
   )
 
-  const generateUserToken = (user) => {
+  const generateUserToken = ({ user, userAgentIdentity, ip }) => {
     logger
       .info(`User (${user.username}) -> generateUserToken requested.`)
-
     return new Promise((resolve, reject) => (
-        getToken(user.id, config.tokenHash)
+        getToken(userAgentIdentity, config.tokenHash)
           .then(({ token }) => (
-            Users
-              .update({ token }, { where: { id: user.id } }, {returning: true })
+            Tokens
+              .findOne({ where: { userAgentIdentity, userId: user.id } })
+              .then(extract)
+              .then(tokenInfo => {
+                if(tokenInfo){
+                  return (
+                    Tokens
+                      .update(
+                        { token },
+                        { where: { userAgentIdentity, userId: user.id } },
+                        {returning: true }
+                      )
+                  )
+                }
+
+                return (
+                  Tokens
+                    .create(
+                      { token ,userAgentIdentity, userId: user.id, ip },
+                      {returning: true }
+                    )
+                    .then(extract)
+                )
+              })
               .then((response) => {
                 response ?
                   resolve({ token }) :
@@ -498,8 +519,6 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
       ))
   )
 
-
-
   const changePassword = ({ actionId, password, confirmPassword }) => (
     isValidPasswords({ password, confirmPassword })
       .then(isPasswordsEqual)
@@ -584,9 +603,9 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
         )
     )
 
-  const signOut = ({ username, id }) => (
-    Users
-      .update({ token: null }, { where: { id: id }, returning: true })
+  const signOut = ({ username, id, userAgentIdentity }) => {
+    return Tokens
+      .update({ token: null }, { where: { userAgentIdentity, userId: id }, returning: true })
       .then((response) => {
         if (!response) {
           throw `Update user (${username}) in db failed`
@@ -603,7 +622,7 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
           httpStatus[httpStatus.UNAUTHORIZED]
         )
       })
-  )
+    }
 
 
   return {

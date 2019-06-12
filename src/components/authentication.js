@@ -13,7 +13,7 @@ const jwtVerify = (token, secretOrPublicKey) => (
 
 const init = ({ logger, config }) => {
     const isUserInRoleDB = (role) => Promise.resolve(true)
-    const { Users } = initEntities({ config: config.database })
+    const { Users, Tokens } = initEntities({ config: config.database })
     const isUserInRole = ({ username, role }) => (
     //TODO: check if user is in role duo to database, if it does so return username if not return null
         isUserInRoleDB(username, role)
@@ -29,20 +29,25 @@ const init = ({ logger, config }) => {
     const innerIsAuthenticated = ({ token }) => (
         jwtVerify(token, config.tokenHash)
             .then(() => (
-                Users
+                Tokens
                     .findOne({ where: { token } })
-                    .then((user) => {
-                        if (!user) {
+                    .then((tokenInfo) => {
+                        if (!tokenInfo) {
                             throw `User doesn't not exist { token: ${token}} `
                         }
-                        return user
+                        return tokenInfo
                     })
                     .then(extract)
-                    .then(user => {
-                        if(!user || user.token !== token){
-                            throw `User with token ${token} not found`
-                        }
-                        return user
+                    .then(tokenInfo => {
+                        return Users
+                            .findOne({ where: { id: tokenInfo.userId }})
+                            .then(extract)
+                            .then((user) => {
+                                if(user && user.isValid) {
+                                    return user
+                                }
+                                throw `User with token ${token} not found`
+                            })
                     })
             ))
     )

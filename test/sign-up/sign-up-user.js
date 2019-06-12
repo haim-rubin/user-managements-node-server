@@ -502,9 +502,7 @@ EVENTS = keyMirror({
         request
           .get(userInfo)
           .end((err, res) => {
-            //console.log(res)
             expect(res).to.have.status(httpStatus.UNAUTHORIZED)
-
             done()
           })
       }

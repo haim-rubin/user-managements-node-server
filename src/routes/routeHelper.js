@@ -35,8 +35,8 @@ const init = ({ isAuthenticated, logger }) => {
 
     const getClientInfo = (req) => ({
         clientInfo: {
-            ip: getClientIp(req),
-            userAgen: getUserAgentObject(req)
+            ...getUserAgentObject(req),
+            ip: getClientIp(req)
         }
     })
 
