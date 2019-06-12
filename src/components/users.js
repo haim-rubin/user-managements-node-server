@@ -316,14 +316,10 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
 
   const createUser = (userData) => (
     Users
-      .create(
-        Object
-          .assign(
-            {},
-            userData,
-            { password: bcrypt.hashSync(userData.password) }
-        )
-      )
+      .create({
+        ...userData,
+        password: bcrypt.hashSync(userData.password)
+      })
       .then(extract)
   )
 
@@ -399,14 +395,6 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
           ))
     ))
   }
-
-  const comparePassword = (password, dbPassword) => (
-    new Promise((resolve, reject) => {
-      bcrypt.compare(password, dbPassword, (error, isMatch) => {
-        isMatch ? resolve(isMatch) : reject(error)
-      })
-    })
-  )
 
   const forgotPassword = ({ username }) => {
     logger.info(`User (${username}) - forgotPassword`)
