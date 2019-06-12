@@ -84,7 +84,7 @@ const init = ({
         })
         .then(userAgentIdentity => (
           signIn({ username, password, thirdParty, clientInfo, userAgentIdentity })
-          .then(responseOk(res))
+            .then(responseOk(res))
         ))
         .catch(responseError(res, httpStatus.UNAUTHORIZED))
 
@@ -104,7 +104,7 @@ const init = ({
         })
         .then(userAgentIdentity => (
           signOut({ ...userInfo, userAgentIdentity })
-          .then(responseOk(res))
+            .then(responseOk(res))
         ))
         .catch(responseError(res))
       }
