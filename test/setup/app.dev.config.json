@@ -1,7 +1,6 @@
 {
   "verifyUserBy": "ADMIN",
   "verify3rdPartyUserBy": "AUTO",
-  "verifyUser":"",
   "appName":"User managemens",
   "port": 5000,
   "database": {

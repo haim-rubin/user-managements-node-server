@@ -152,6 +152,34 @@
 		}
 	}
 ```
+```javascript
+	Tokens: {
+		id: {
+			type: DataTypes.UUID,
+			allowNull: false,
+			primaryKey: true,
+			defaultValue: () => uuid.v4()
+		},
+		userId: {
+			type: DataTypes.UUID,
+			allowNull: false,
+			primaryKey: true
+		},
+		ip: {
+			type: DataTypes.STRING,
+			allowNull: false,
+			unique: true
+		},
+		token: {
+			type: DataTypes.STRING,
+			allowNull: true
+		},
+		userAgentIdentity: {
+			type: DataTypes.STRING,
+			allowNull: false
+		}
+	}
+```
 
 - Table: Users
 ```javascript
@@ -232,68 +260,64 @@
 
 ```javascript
 {
-	"verifyUserBy": false,
-    "appName": "Node User managemens server",
-	"port": 5300,
-	"database": {
-		"name": "user-managements-db",
-		"username": "user-managements-username",
-		"password": "user-managements-password",
-		"settings": {
-			"host": "localhost",
-			"dialect": "sqlite",
-			"storage": "/tmp/user-managements.sqlite",
-			"pool": {
-				"max": 5,
-				"min": 0,
-				"idle": 10000
-			},
-			"logging": false
-		}
+  "verifyUserBy": "ADMIN", // "ADMIN" | "AUTO" : "EMAIL"
+  "verify3rdPartyUserBy": "AUTO", // "ADMIN" | "AUTO" : "EMAIL"
+  "useSingleToken": false, // true - Multiple tokens for diffrent devices
+  "appName":"<Your application name>", // The appName will be uses when sending emails to user/admin
+  "port": 5000,
+  "database": {
+    "name": "user-managements-db",
+    "username": "user-managements-username",
+    "password": "user-managements-password",
+    "settings": {
+      // Database location
+      "host": "localhost",
+      // You can use one of the the foolowing databases
+      "dialect": " mysql | mariadb | sqlite | postgres | mssql ",
+      // In case you use sqlite storage file path is required
+      "storage": "/tmp/user-managements.sqlite",
+      "pool": {
+        "max": 5,
+        "min": 0,
+        "idle": 10000
+      },
+      // To log database queries set the following to true
+      "logging": false
+    }
+  },
+  // The following email setting are require if you want the system to send emails to users
+  "email": {
+    "service": "<Email Service>",
+    "user": "<Email Username>",
+    "pass": "<Email Password>",
+    "from": "<Email From>"
+  },
+  "verificationUrl": "http://your-web-site-domain/user/verify/",
+  "changePasswordUrl": "http://your-web-site-domain/change-password/",
+  "loginUrl": "http://your-web-site-domain/login",
+  "tokenHash": "dev-token-key",
+  "adminEmail": "<admin@your-domain>",
+  "log4js": {
+    "appenders": { "app": { "type": "file", "filename": "/var/log/your-app-name/app-name.log" } },
+    "categories": { "default": { "appenders": ["app"], "level": "all" } }
+  },
+  "templates": {
+    "activation":{
+      "body" : "./email-templates/activation/body.html",
+      "subject" : "./email-templates/activation/subject.html"
     },
-    "email": {
-        "service": "<Email Service>",
-        "user": "<Email Username>",
-        "pass": "<Email Password>",
-        "from": "<Email From>"
+    "approved":{
+      "body" : "./email-templates/approved-activation/body.html",
+      "subject" : "./email-templates/approved-activation/subject.html"
     },
-    "verificationUrl": "<Verify User URL>",
-    "changePasswordUrl": "<Change Password URL>",
-    "loginUrl": "<Login URL>",
-    "tokenHash": "<Token Hash Key>",
-    "adminEmail": "<Admin Email>",
-    "log4js": {
-		"appenders": { "app": { "type": "file", "filename": "/Users/haimr-mac/logs/app-name.log" } },
-      	"categories": { "default": { "appenders": ["app"], "level": "all" } }
+    "notify":{
+      "body" : "./email-templates/notify-admin-when-user-created/body.html",
+      "subject" : "./email-templates/notify-admin-when-user-created/subject.html"
     },
-    "facebook": {
-    	"APP_ID": "<Facebook App ID>",
-    	"APP_SECRET": "<Facebook App Secret>",
-    	"VERSION": "v2.9"
-    },
-    "google": {
-    	"clientId": "<Google Client ID>",
-    	"clientSecret": "<Google Client Secret>",
-    	"apiKey": "<Google Api Key>"
-    },
-    "loginWithThirdParty": true,
-    "templates": {
-		"activation":{
-			"activationBody" : "./email-templates/activation/body.html",
-			"subject" : "./email-templates/activation/subject.html"
-		},
-		"approved":{
-			"body" : "./email-templates/approved-activation/body.html",
-			"subject" : "./email-templates/approved-activation/subject.html"
-		},
-		"notify":{
-			"body" : "./email-templates/notify-admin-when-user-created/body.html",
-			"subject" : "./email-templates/notify-admin-when-user-created/subject.html"
-		},
-		"activationResponse" : "./email-templates/activation/response.html"
-    },
-    "userRoutePrefix": "/user"
-  }
+    "activationResponse" : "./email-templates/activation/response.html"
+  },
+  "userRoutePrefix": "/user"
+}
 ```
 * Run: yarn dbcreate Or npm run dbcreate - This script will create the relevant tables
 * Run the server:

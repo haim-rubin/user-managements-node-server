@@ -1,63 +1,54 @@
 {
-  "verifyUserBy": false,
-    "appName": "Node User managemens server",
-    "port": 5300,
-    "database": {
-      "name": "user-managements-db",
-      "username": "user-managements-username",
-      "password": "user-managements-password",
-      "settings": {
-        "host": "localhost",
-        "dialect": " mysql | mariadb | sqlite | postgres | mssql ",
-        "storage": "/tmp/user-managements.sqlite",
-        "pool": {
-          "max": 5,
-          "min": 0,
-          "idle": 10000
-        },
-        "logging": false
-      }
-    },
-    "email": {
-        "service": "<Email Service>",
-        "user": "<Email Username>",
-        "pass": "<Email Password>",
-        "from": "<Email From>"
-    },
-    "verificationUrl": "<Verify User URL>",
-    "changePasswordUrl": "<Change Password URL>",
-    "loginUrl": "<Login URL>",
-    "tokenHash": "<Token Hash Key>",
-    "adminEmail": "<Admin Email>",
-    "log4js": {
-      "appenders": { "app": { "type": "file", "filename": "/Users/haimr-mac/logs/app-name.log" } },
-      "categories": { "default": { "appenders": ["app"], "level": "all" } }
-    },
-    "facebook": {
-      "APP_ID": "<Facebook App ID>",
-      "APP_SECRET": "<Facebook App Secret>",
-      "VERSION": "v2.9"
-    },
-    "google": {
-      "clientId": "<Google Client ID>",
-      "clientSecret": "<Google Client Secret>",
-      "apiKey": "<Google Api Key>"
-    },
-    "loginWithThirdParty": true,
-    "templates": {
-      "activation":{
-        "activationBody" : "./email-templates/activation/body.html",
-        "subject" : "./email-templates/activation/subject.html"
+  "verifyUserBy": "ADMIN",
+  "verify3rdPartyUserBy": "AUTO",
+  "useSingleToken": false,
+  "appName":"<Your application name>",
+  "port": 5000,
+  "database": {
+    "name": "user-managements-db",
+    "username": "user-managements-username",
+    "password": "user-managements-password",
+    "settings": {
+      "host": "localhost",
+      "dialect": " mysql | mariadb | sqlite | postgres | mssql ",
+      "storage": "/tmp/user-managements.sqlite",
+      "pool": {
+        "max": 5,
+        "min": 0,
+        "idle": 10000
       },
-      "approved":{
-        "body" : "./email-templates/approved-activation/body.html",
-        "subject" : "./email-templates/approved-activation/subject.html"
-      },
-      "notify":{
-        "body" : "./email-templates/notify-admin-when-user-created/body.html",
-        "subject" : "./email-templates/notify-admin-when-user-created/subject.html"
-      },
-      "activationResponse" : "./email-templates/activation/response.html"
+      "logging": false
+    }
+  },
+  "email": {
+    "service": "<Email Service>",
+    "user": "<Email Username>",
+    "pass": "<Email Password>",
+    "from": "<Email From>"
+  },
+  "verificationUrl": "http://your-web-site-domain/user/verify/",
+  "changePasswordUrl": "http://your-web-site-domain/change-password/",
+  "loginUrl": "http://your-web-site-domain/login",
+  "tokenHash": "dev-token-key",
+  "adminEmail": "<admin@your-domain>",
+  "log4js": {
+    "appenders": { "app": { "type": "file", "filename": "/var/log/your-app-name/app-name.log" } },
+    "categories": { "default": { "appenders": ["app"], "level": "all" } }
+  },
+  "templates": {
+    "activation":{
+      "body" : "./email-templates/activation/body.html",
+      "subject" : "./email-templates/activation/subject.html"
     },
-    "userRoutePrefix": "/user"
-  }
+    "approved":{
+      "body" : "./email-templates/approved-activation/body.html",
+      "subject" : "./email-templates/approved-activation/subject.html"
+    },
+    "notify":{
+      "body" : "./email-templates/notify-admin-when-user-created/body.html",
+      "subject" : "./email-templates/notify-admin-when-user-created/subject.html"
+    },
+    "activationResponse" : "./email-templates/activation/response.html"
+  },
+  "userRoutePrefix": "/user"
+}
