@@ -1,8 +1,7 @@
 import HttpError from "../utils/HttpError";
 import httpStatus from 'http-status'
 import initRouteHelper from './routeHelper'
-import crypto from 'crypto'
-import querystring from 'querystring'
+
 const init = ({
   signUp,
   signIn,
@@ -15,7 +14,8 @@ const init = ({
   getVerifyResponseHTML,
   isAuthenticated,
   auditLogger,
-  userRoutePrefix
+  userRoutePrefix,
+  getUserAgentUniqueIdentify
 }) => (userRouter, app) => {
 
   const {
@@ -30,27 +30,6 @@ const init = ({
     Object
       .assign(req, getClientInfo(req))
     next()
-  }
-
-  const getUserAgentUniqueIdentify = (userAgentInfo) => {
-    return new Promise((resolve, reject) => {
-      try {
-        const hash =
-          crypto.createHash('sha256')
-
-        resolve(
-          hash
-            .update(
-              querystring
-                .stringify(userAgentInfo)
-            )
-            .digest('hex')
-        )
-      }
-      catch(error){
-        reject(error)
-      }
-    })
   }
 
   app.use(enrichWithClientInfo)
