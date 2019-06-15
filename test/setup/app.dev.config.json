@@ -29,10 +29,9 @@
   "changePasswordUrl": "http://localhost:3000/change-password/",
   "loginUrl": "http://localhost:3000",
   "tokenHash": "dev-token-key",
-  "videoPath": "video-examples",
   "adminEmail": "users.managements@gmail.com",
   "log4js": {
-    "appenders": { "app": { "type": "file", "filename": "./config/app-name.log" } },
+    "appenders": { "app": { "type": "file", "filename": "/var/log/your-app-name/app-name.log" } },
     "categories": { "default": { "appenders": ["app"], "level": "all" } }
   },
   "templates": {
