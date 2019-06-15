@@ -13,4 +13,5 @@ export const signOutRoute = `/sign-out`
 export const forgotPasswordRoute = `/forgot-password`
 export const changePasswordRoute = `/change-password`
 export const userInfo = '/info'
+export const TOKEN_KEY = 'token'
 

@@ -14,7 +14,7 @@ describe('Sign up user', () =>  {
     const request = chaiRequest(baseUrl)
     let server
     before(done => {
-        create({ config: config.database })
+      create({ config: config.database })
         .then(createServer)
         .then(res => server = res)
         .then(() => done())
