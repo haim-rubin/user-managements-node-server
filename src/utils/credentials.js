@@ -1,6 +1,6 @@
 import crypto  from 'crypto'
 import { promisify } from 'util'
-const scryptPromisify = promisify(crypto.scrypt)
+const scrypt = promisify(crypto.scrypt)
 const numBase = 'hex'
 const keyLength = 64
 
@@ -11,12 +11,12 @@ export const randomBytesHex = keyLength => (
         .then(bytes => bytes.toString(numBase))
 )
 export const encrypt = ({ clearPassword, salt, length = keyLength }) => (
-    scryptPromisify(clearPassword, salt, length)
+    scrypt(clearPassword, salt, length)
         .then(derivedKey => derivedKey.toString(numBase))
 )
 
 export const verifyPassword = ({ password, encryptedPassword, salt }) => (
-    scryptPromisify(password, salt, keyLength)
+    scrypt(password, salt, keyLength)
         .then(derivedKey => derivedKey.equals(Buffer.from(encryptedPassword, numBase)))
         .then(isMatch => {
             if(!isMatch){

@@ -250,7 +250,7 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
       ))
   }
 
-  const signInUser = ({ username, password, userAgentIdentity }) => {
+  const signInUser = ({ username, password }) => {
     const logPrefix = `User (${username}) - signInUser ->`
     logger
       .info(`${logPrefix} requested.`)
