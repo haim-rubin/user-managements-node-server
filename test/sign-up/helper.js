@@ -22,8 +22,7 @@ import { server } from '../../index'
 const { ActionVerifications } = initEntities({ config: config.database, logger })
 const request = chaiRequest(baseUrl)
 
-export const getDbConfigWithInactivrUser = () => {
-    const dbTest = `/tmp/${uuid.v4()}${path.extname(dbWithUserDoesNotActivated)}`
+const getServerWithDbReady = (dbTest, existingDb) => {
     const database = {
         ...config.database,
         settings: {
@@ -33,7 +32,7 @@ export const getDbConfigWithInactivrUser = () => {
     }
     return (
         copyFile(
-            dbWithUserDoesNotActivated,
+            existingDb,
             dbTest
         )
         .then(() => ({ database, dbTest }))
@@ -48,6 +47,20 @@ export const getDbConfigWithInactivrUser = () => {
                     entities
                 }))
         })
+    )
+}
+
+export const getDbConfigWithInactiveUser = () => {
+    const dbTest = `/tmp/${uuid.v4()}${path.extname(dbWithUserDoesNotActivated)}`
+    return (
+        getServerWithDbReady(dbTest, dbWithUserDoesNotActivated)
+    )
+}
+
+export const getDbConfigWithActivatedUser = () => {
+    const dbTest = `/tmp/${uuid.v4()}${path.extname(dbWithActivatedUser)}`
+    return (
+        getServerWithDbReady(dbTest, dbWithActivatedUser)
     )
 }
 export const initServerWithUserInactiveUser = (config) => {

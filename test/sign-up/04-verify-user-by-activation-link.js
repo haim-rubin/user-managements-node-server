@@ -4,14 +4,14 @@ import config from '../setup/app.dev.config.json'
 import { chaiRequest, expect } from '../setup/chaiHttpHelper'
 import { EVENTS } from '../../src/consts'
 import { extract } from '../../src/utils/SequelizeHelper'
-import { getDbConfigWithInactivrUser } from './helper'
+import { getDbConfigWithInactiveUser } from './helper'
 
 describe('Sign up user', () =>  {
   const request = chaiRequest(baseUrl)
   let server
   let ActionVerifications
   before(done => {
-    getDbConfigWithInactivrUser()
+    getDbConfigWithInactiveUser()
       .then(({ server: srv, entities })=>{
         server = srv
         ActionVerifications = entities.ActionVerifications

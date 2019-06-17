@@ -5,13 +5,13 @@ import {
   signUpRoute,
 } from '../data'
 import { chaiRequest, expect } from '../setup/chaiHttpHelper'
-import { getDbConfigWithInactivrUser } from './helper'
+import { getDbConfigWithInactiveUser } from './helper'
 
 describe('Sign up user', async() =>  {
   const request = chaiRequest(baseUrl)
   let server
   before(done => {
-    getDbConfigWithInactivrUser()
+    getDbConfigWithInactiveUser()
       .then(({ server: srv, entities: ents })=>{
         server = srv
       })
