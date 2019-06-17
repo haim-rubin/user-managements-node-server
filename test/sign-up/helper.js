@@ -41,7 +41,12 @@ export const getDbConfigWithInactivrUser = () => {
             initEntities({ config: database, logger })
         ))
         .then(entities =>{
-            server({ ...config, database })
+            const appConfig = { ...config, database }
+            return server({ appConfig })
+                .then(server => ({
+                    server,
+                    entities
+                }))
         })
     )
 }

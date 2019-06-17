@@ -1,22 +1,20 @@
 import httpStatus from 'http-status'
 import { credentials, baseUrl, signInRoute } from '../data'
-import config from '../setup/app.dev.config.json'
-import createServer from '../setup'
-import create from '../../scripts/create-database'
 import { chaiRequest, expect } from '../setup/chaiHttpHelper'
-
+import { getDbConfigWithInactivrUser } from './helper'
 describe('Sign up user', () =>  {
-    const request = chaiRequest(baseUrl)
-    let server
-    before(done => {
-      create({ config: config.database })
-        .then(createServer)
-        .then(res => server = res)
-        .then(() => done())
-    })
+  const request = chaiRequest(baseUrl)
+  let server
+  before(done => {
+    getDbConfigWithInactivrUser()
+      .then(({ server: srv })=>{
+        server = srv
+      })
+      .then(() => done())
+  })
 
-    describe(`Sign in with invalid password`, () => {
-        it(`Should return ${httpStatus[httpStatus.UNAUTHORIZED]}`,
+  describe(`Sign in with invalid password`, () => {
+      it(`Should return ${httpStatus[httpStatus.UNAUTHORIZED]}`,
         done => {
           request
             .post(signInRoute)
@@ -30,8 +28,8 @@ describe('Sign up user', () =>  {
                 done()
             })
           }
-        )
-      })
+      )
+  })
 
   after(done => {
     server.stop()
