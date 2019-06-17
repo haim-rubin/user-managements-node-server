@@ -31,7 +31,7 @@
   "tokenHash": "dev-token-key",
   "adminEmail": "users.managements@gmail.com",
   "log4js": {
-    "appenders": { "app": { "type": "file", "filename": "/var/log/your-app-name/app-name.log" } },
+    "appenders": { "app": { "type": "file", "filename": "/tmp/your-app-name/app-name.log" } },
     "categories": { "default": { "appenders": ["app"], "level": "all" } }
   },
   "templates": {
