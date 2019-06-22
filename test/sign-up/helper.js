@@ -16,6 +16,8 @@ import fs from 'fs'
 import uuid from 'uuid'
 export const dbWithUserDoesNotActivated = path.join( __dirname, '../data/db-with-user-does-not-activated.sqlite')
 export const dbWithActivatedUser = path.join( __dirname, '../data/db-with-activated-user.sqlite')
+export const dbWithVerifiedUser = path.join( __dirname, '../data/db-with-verified-user.sqlite')
+export const dbWithForgotPasswordAction = path.join( __dirname, '../data/db-with-forgot-password-action.sqlite')
 const copyFile = util.promisify(fs.copyFile)
 import { server } from '../../index'
 
@@ -50,19 +52,35 @@ const getServerWithDbReady = (dbTest, existingDb) => {
     )
 }
 
+const getDbFileName = () => {
+    const dbFileName = `/tmp/${uuid.v4()}.sqlite`
+    return dbFileName
+}
+
 export const getDbConfigWithInactiveUser = () => {
-    const dbTest = `/tmp/${uuid.v4()}${path.extname(dbWithUserDoesNotActivated)}`
     return (
-        getServerWithDbReady(dbTest, dbWithUserDoesNotActivated)
+        getServerWithDbReady(getDbFileName(), dbWithUserDoesNotActivated)
     )
 }
 
 export const getDbConfigWithActivatedUser = () => {
-    const dbTest = `/tmp/${uuid.v4()}${path.extname(dbWithActivatedUser)}`
     return (
-        getServerWithDbReady(dbTest, dbWithActivatedUser)
+        getServerWithDbReady(getDbFileName(), dbWithActivatedUser)
     )
 }
+
+export const getDbConfigWithVerifiedUser = () => {
+    return (
+        getServerWithDbReady(getDbFileName(), dbWithVerifiedUser)
+    )
+}
+
+export const getDbConfigWithForgotPasswordAction = () => {
+    return (
+        getServerWithDbReady(getDbFileName(), dbWithForgotPasswordAction)
+    )
+}
+
 export const initServerWithUserInactiveUser = (config) => {
     return (
         create({ config })

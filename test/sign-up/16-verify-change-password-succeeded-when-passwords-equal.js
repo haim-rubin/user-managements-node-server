@@ -1,23 +1,20 @@
 import httpStatus from 'http-status'
 import { credentials, baseUrl, changePasswordRoute } from '../data'
-import config from '../setup/app.dev.config.json'
-import createServer from '../setup'
-import create from '../../scripts/create-database'
 import { chaiRequest, expect } from '../setup/chaiHttpHelper'
 import { ACTION_VERIFICATIONS, VERBAL_CODE } from '../../src/consts'
 import { extract } from '../../src/utils/SequelizeHelper'
-
-import initEntities from '../../src/entities'
-import { logger } from '../setup/mocks/logger'
-const { ActionVerifications } = initEntities({ config: config.database, logger })
+import { getDbConfigWithForgotPasswordAction } from './helper'
 
 describe('Sign up user', () =>  {
   const request = chaiRequest(baseUrl)
   let server
+  let ActionVerifications
   before(done => {
-    create({ config: config.database })
-      .then(createServer)
-      .then(res => server = res)
+    getDbConfigWithForgotPasswordAction()
+      .then(({ server: srv, entities })=>{
+        server = srv
+        ActionVerifications = entities.ActionVerifications
+      })
       .then(() => done())
   })
 

@@ -1,23 +1,20 @@
 import httpStatus from 'http-status'
 import { credentials, baseUrl, verifyRoute } from '../data'
-import config from '../setup/app.dev.config.json'
-import createServer from '../setup'
-import create from '../../scripts/create-database'
 import { chaiRequest, expect } from '../setup/chaiHttpHelper'
 import { ACTION_VERIFICATIONS } from '../../src/consts'
-import initEntities from '../../src/entities'
-import { logger } from '../setup/mocks/logger'
 import { extract } from '../../src/utils/SequelizeHelper'
-
-const { ActionVerifications } = initEntities({ config: config.database, logger })
+import { getDbConfigWithVerifiedUser } from './helper'
 
 describe('Sign up user', () =>  {
   const request = chaiRequest(baseUrl)
   let server
+  let ActionVerifications
   before(done => {
-    create({ config: config.database })
-      .then(createServer)
-      .then(res => server = res)
+    getDbConfigWithVerifiedUser()
+      .then(({ server: srv, entities })=>{
+        server = srv
+        ActionVerifications = entities.ActionVerifications
+      })
       .then(() => done())
   })
 

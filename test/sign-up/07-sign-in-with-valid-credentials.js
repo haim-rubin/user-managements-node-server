@@ -1,10 +1,8 @@
 import httpStatus from 'http-status'
 import { credentials, baseUrl, signInRoute } from '../data'
-import config from '../setup/app.dev.config.json'
-import createServer from '../setup'
-import create from '../../scripts/create-database'
 import { chaiRequest, expect } from '../setup/chaiHttpHelper'
 import { getDbConfigWithActivatedUser } from './helper'
+
 describe('Sign up user', () =>  {
   const request = chaiRequest(baseUrl)
   let server

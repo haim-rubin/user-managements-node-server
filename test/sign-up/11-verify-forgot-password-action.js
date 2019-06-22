@@ -1,26 +1,22 @@
 import httpStatus from 'http-status'
 import { credentials, baseUrl, forgotPasswordRoute } from '../data'
-import config from '../setup/app.dev.config.json'
-import createServer from '../setup'
-import create from '../../scripts/create-database'
 import { chaiRequest, expect } from '../setup/chaiHttpHelper'
-import initEntities from '../../src/entities'
-import { logger } from '../setup/mocks/logger'
 import { ACTION_VERIFICATIONS, VERBAL_CODE } from '../../src/consts'
 import { extract } from '../../src/utils/SequelizeHelper'
-
-const { ActionVerifications } = initEntities({ config: config.database, logger })
+import { getDbConfigWithVerifiedUser } from './helper'
 
 describe('Sign up user', () =>  {
   const request = chaiRequest(baseUrl)
   let server
+  let ActionVerifications
   before(done => {
-    create({ config: config.database })
-      .then(createServer)
-      .then(res => server = res)
+    getDbConfigWithVerifiedUser()
+      .then(({ server: srv, entities })=>{
+        server = srv
+        ActionVerifications = entities.ActionVerifications
+      })
       .then(() => done())
   })
-
 
   describe('Verify when posting forgot-password action verification created', () => {
     it(`Should return ${httpStatus[httpStatus.OK]}`,

@@ -2,6 +2,7 @@ import httpStatus from 'http-status'
 import { credentials, baseUrl, signInRoute } from '../data'
 import { chaiRequest, expect } from '../setup/chaiHttpHelper'
 import { getDbConfigWithInactiveUser } from './helper'
+
 describe('Sign up user', () =>  {
   const request = chaiRequest(baseUrl)
   let server
