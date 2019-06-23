@@ -1,4 +1,5 @@
 {
+  "useSingleToken": false,
   "verifyUserBy": "ADMIN",
   "verify3rdPartyUserBy": "AUTO",
   "appName":"User managemens",

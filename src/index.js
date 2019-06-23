@@ -14,6 +14,11 @@ const server = ({ appConfig, ...externals}) => (
   const getUserAgentUniqueIdentify = (userAgentInfo) => {
     return new Promise((resolve, reject) => {
       try {
+        const userMachineIdentity =
+          appConfig.useSingleToken
+          ? { username: userAgentInfo.username }
+          : userAgentInfo
+
         const hash =
           crypto.createHash('sha256')
 
@@ -22,9 +27,7 @@ const server = ({ appConfig, ...externals}) => (
             .update(
               querystring
                 .stringify(
-                  appConfig.useSingleToken
-                  ? userAgentInfo.username
-                  : userAgentInfo
+                  userMachineIdentity
                 )
             )
             .digest('hex')
