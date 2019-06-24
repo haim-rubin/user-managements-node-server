@@ -63,7 +63,7 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
   const signUp = ({ username, password }) => (
     isValidUsernameAndPassword({ username, password })
       .catch(validation => {
-        logger.log(validation)
+        logger.error(validation)
           const {
             isValidPassword,
             isValidUsername
@@ -103,7 +103,7 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
       ))
       .then(() => {
         logger
-          .info(`User verify by: ${emailVerificationTo[config.verifyUserBy]}`)
+          .trace(`User verify by: ${emailVerificationTo[config.verifyUserBy]}`)
         return {
           httpStatusCode: httpStatus.CREATED,
           message: httpStatus[httpStatus.CREATED]
@@ -118,7 +118,7 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
   const verify = ({ actionId }) => {
 
     logger
-      .info(`Verify user by action (${actionId})`)
+      .trace(`Verify user by action (${actionId})`)
 
     return (
       isValidActionId({ actionId })
@@ -194,8 +194,8 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
           ? VERBAL_CODE.USER_VERIFIED_BY_ACTIVATION_LINK
           : VERBAL_CODE.USER_VERIFIED_BY_ACTIVATION_LINK_ADMIN
 
-        logger.info(logMessage)
-        logger.info(`User (${username}) activated.`)
+        logger.trace(logMessage)
+        logger.trace(`User (${username}) activated.`)
         emit(EVENTS.USER_APPROVED, { username, admin: config.adminEmail })
 
         return {
@@ -225,14 +225,14 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
     const logPrefix = `User (${username}) - signInViaThirdparty (${thirdParty}) ->`
 
     logger
-      .info(`${logPrefix} requested.`)
+      .trace(`${logPrefix} requested.`)
 
     return isThirdpartySupprted(thirdParty)
       .then(() => verifyThirdPartyUser({ username, password, thirdParty }))
       .then(user => {
         if(!user.isValid){
           logger
-            .log(`${VERBAL_CODE.INVALID_USERNAME_OR_TOKEN} - ${username}`)
+            .error(`${VERBAL_CODE.INVALID_USERNAME_OR_TOKEN} - ${username}`)
 
           throw new HttpError(
             httpStatus.UNAUTHORIZED,
@@ -253,7 +253,7 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
   const signInUser = ({ username, password }) => {
     const logPrefix = `User (${username}) - signInUser ->`
     logger
-      .info(`${logPrefix} requested.`)
+      .trace(`${logPrefix} requested.`)
 
     return (
       Users
@@ -373,14 +373,14 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
       ))
       .catch(error => {
         logger
-          .log(error)
+          .error(error)
         throw error
       })
   )
 
   const generateUserToken = ({ user, userAgentIdentity, ip }) => {
     logger
-      .info(`User (${user.username}) -> generateUserToken requested.`)
+      .trace(`User (${user.username}) -> generateUserToken requested.`)
     return new Promise((resolve, reject) => (
         getToken(userAgentIdentity, config.tokenHash)
           .then(({ token }) => (
@@ -418,7 +418,7 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
   }
 
   const forgotPassword = ({ username }) => {
-    logger.info(`User (${username}) - forgotPassword`)
+    logger.trace(`User (${username}) - forgotPassword`)
 
     return (
       Users
@@ -447,7 +447,7 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
         .then(() => {
 
           logger
-            .info(`Reset link sent to user (${username}).`)
+            .trace(`Reset link sent to user (${username}).`)
 
           return {
             httpStatusCode: httpStatus.OK,
@@ -486,7 +486,7 @@ const init = ({ config, logger, _3rdPartyProviders, dal, emit }) =>{
           [].concat(actionVerification)
             .filter( x => x)
 
-        logger.info(`ActionVerification updated: ${affected.join(',')}`)
+        logger.trace(`ActionVerification updated: ${affected.join(',')}`)
         return affected
       })
       .then(() => ActionVerifications.findOne(
