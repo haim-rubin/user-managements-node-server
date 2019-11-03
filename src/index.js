@@ -39,6 +39,7 @@ const server = ({ appConfig, ...externals}) => (
     })
   }
     try{
+      process.setMaxListeners(0)
       const {
         settings,
         logger,
