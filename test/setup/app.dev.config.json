@@ -21,10 +21,10 @@
     }
   },
   "email": {
-    "service": "gmail",
-    "user": "users.managements@gmail.com",
-    "pass": "umn@2019",
-    "from": "users.managements@gmail.com"
+    "service": "your-email-service",
+    "user": "your-email@address.com",
+    "pass": "your-email-password",
+    "from": "your-email@address.com"
   },
   "verificationUrl": "http://localhost:5000/user/verify/",
   "changePasswordUrl": "http://localhost:3000/change-password/",

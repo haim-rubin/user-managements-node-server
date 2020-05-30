@@ -44,7 +44,7 @@
     "node-fetch": "^1.7.2",
     "nodemailer": "^4.0.1",
     "pg": "^7.11.0",
-    "sequelize": "^5.8.6",
+    "sequelize": "^5.21.11",
     "useragent": "^2.2.1",
     "uuid": "^3.3.2"
   },
@@ -54,7 +54,7 @@
     "eslint": "^5.16.0",
     "eslint-plugin-node": "^9.1.0",
     "expect.js": "^0.3.1",
-    "mocha": "^5.2.0",
+    "mocha": "^7.2.0",
     "shelljs": "^0.8.3",
     "sqlite3": "^4.0.4"
   }

@@ -1,0 +1,37 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+          "type": "node",
+          "request": "launch",
+          "name": "Mocha debug All",
+          "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+          "args": [
+              "--timeout",
+              "999999",
+              "--colors",
+              "--r",
+              "esm",
+              "${workspaceFolder}/test"
+          ],
+          "console": "integratedTerminal",
+          "internalConsoleOptions": "neverOpen"
+      },
+      {
+          "type": "node",
+          "request": "launch",
+          "name": "Mocha Current File",
+          "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+          "args": [
+              "--timeout",
+              "999999",
+              "--colors",
+              "${file}",
+              "--r",
+              "esm"
+          ],
+          "console": "integratedTerminal",
+          "internalConsoleOptions": "neverOpen"
+      }
+    ]
+  }

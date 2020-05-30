@@ -5,8 +5,6 @@ node_modules
 
 # IDE
 .idea/
-.vscode/
-.vscode
 
 # testing
 /coverage
