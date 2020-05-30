@@ -321,51 +321,7 @@
 ```
 * Run: yarn dbcreate Or npm run dbcreate - This script will create the relevant tables
 * Run the server:
-
-```javascript
-		import { server: userManagements, isAuthenticated } from 'user-managements-node-server'
-		import express from 'express'
-		import bodyParser from 'body-parser'
-		import proxy from 'express-http-proxy'
-		import boolParser from 'express-query-boolean'
-		import config from './config'
-
-		const userApiAddress = 'http://localhost:5300'
-
-		const redirectUrl = (req, res, next) => {
-		  Object
-			.assign(
-			  req,
-			  {
-				url: req.originalUrl.replace('/api', '')
-			  }
-			)
-
-		  next()
-		}
-
-		const server = (config) => {
-		userManagements(config) //Setup user managements
-  		const app = express()
-
-  		app.use(bodyParser.urlencoded({ extended: true }));
-  		app.use(bodyParser.json())
-  		app.use(boolParser())
-
-  		app.use(bodyParser.json({limit: '200mb'}));
-  		app.use('/api/user', redirectUrl, proxy(userApiAddress))
-
- 		app.use('/api/any-other-your-application-route', isAuthenticated(), (req, res) => {
-			 //Your handler
-		 })
-
-		app.listen(config.port, () => {
-			console.log(`Server is running on port ${config.port}`)
-		})
-}
-
-server(config)
-```
+* Please see example how to run this module: [run-user-managements-node-server-exp](https://github.com/haim-rubin/run-user-managements-node-server-exp "Example how to wotk with 'user-managements-node-server'")
 
 * Templates - any of the following templates can be edited with your own HTML template
 	I've choose to work with [dot](https://www.npmjs.com/package/dot) module.
