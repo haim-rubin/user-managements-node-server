@@ -1,7 +1,6 @@
 import './polyfills'
 import express from 'express'
 import bodyParser from 'body-parser'
-import isAuthenticate from './utils/isAuthenticate'
 import initUserApis from './routes/users'
 import initFallBacks from './fallbacks'
 import crypto from 'crypto'
@@ -75,6 +74,5 @@ const server = ({ appConfig, ...externals}) => (
   )
 
 export {
-  server,
-  isAuthenticate
+  server
 }

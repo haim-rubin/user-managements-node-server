@@ -178,26 +178,31 @@ const init = ({
     .route('/is-authenticated')
     .post(
       logHttpRequestWrapper,
-      (req, res, next) => {
-        const {
-          body: { role },
-          headers: { token }
-        } = req
+      unauthorizedIfNotAuthenticated(),
+      (req, res) => {
+        res.json({e:'s'})
+      }
+      )
 
-        validateAuthenticated(token, role)
-          .then(() => {
-            next()
-          })
-          .catch(error => {
-            if(!(error instanceof HttpError)){
-              error = new HttpError()
-            }
+      //   const {
+      //     body: { role },
+      //     headers: { token }
+      //   } = req
 
-            res
-                .status(error.code)
-                .json(error.message)
-          })
-      })
+      //   validateAuthenticated(token, role)
+      //     .then(() => {
+      //       next()
+      //     })
+      //     .catch(error => {
+      //       if(!(error instanceof HttpError)){
+      //         error = new HttpError()
+      //       }
+
+      //       res
+      //           .status(error.code)
+      //           .json(error.message)
+      //     })
+      // })
   }
 
 export default init

@@ -326,7 +326,7 @@
 		import { server: userManagements, isAuthenticated } from 'user-managements-node-server'
 		import express from 'express'
 		import bodyParser from 'body-parser'
-		import proxy =  from 'express-http-proxy')
+		import proxy from 'express-http-proxy'
 		import boolParser from 'express-query-boolean'
 		import config from './config'
 

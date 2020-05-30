@@ -7,7 +7,7 @@ const init = ({ isAuthenticated, logger }) => {
     const response = ({ res, httpStatusCode, data }) => {
         res
             .status(httpStatusCode)
-            .json(data || { message: httpStatus[httpStatusCode] })
+            .json(data || { message: httpStatus[httpStatusCode], error: true, httpStatusCode })
     }
 
     const responseOk = res => ({ httpStatusCode = httpStatus.OK, ...data }) => {
