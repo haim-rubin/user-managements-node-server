@@ -1,6 +1,6 @@
 {
   "name": "user-managements-node-server",
-  "version": "1.0.14",
+  "version": "2.0.0",
   "description": "starter for express node server with user managements, authentication authorization",
   "main": "index.js",
   "scripts": {
